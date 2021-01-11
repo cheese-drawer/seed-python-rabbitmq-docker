@@ -1,0 +1,13 @@
+# vim files
+*.swp
+*.swo
+
+# python environment
+.env/
+
+# python caches
+__pycache__/
+.mypy_cache/
+
+# secret files
+.secrets
