@@ -8,7 +8,7 @@ import pika
 from dotenv import load_dotenv
 
 # load environment variables from secrets
-load_dotenv('.secrets')
+load_dotenv(os.path.abspath('app/.secrets'))
 
 # setup broker credentials using secrets or defaults
 BROKER_USER = os.getenv('BROKER_USER', 'guest')
