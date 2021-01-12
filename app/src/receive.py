@@ -14,27 +14,33 @@ channel = connection.channel()
 
 
 # declare the same exchange as the producer
-EXCHANGE_NAME = 'logs'
+EXCHANGE_NAME = 'direct_logs'
 channel.exchange_declare(
     exchange=EXCHANGE_NAME,
-    exchange_type='fanout'
+    exchange_type='direct'
 )
 
 
-# using an empty queue name allows for the creation of a new,
-# anonymous queue every time a producer or consumer connects
-# this means that a consumer won't receive all the old messages
-# from the queue upon connection, & will only begin receiving
-# messages created after connection
-# by assigning the queue to a variable, we can refer to it
-# later, allowing us to close the queue when this worker ends
+# severities are supplied at execution time by the user
+SEVERITIES = sys.argv[1:]
+
+if not SEVERITIES:
+    sys.stderr.write(f'Usage: {sys.argv[0]} [info] [warn] [error]')
+    sys.exit(1)
+
+# uses anonymous temporary queues again
 CHANNEL_NAME = ''
 queue = channel.queue_declare(queue=CHANNEL_NAME, exclusive=True)
 QUEUE_NAME = queue.method.queue
-channel.queue_bind(
-    exchange=EXCHANGE_NAME,
-    queue=QUEUE_NAME
-)
+
+# create a queue binding for each severity supplied
+# using the severity as the routing_key
+for severity in SEVERITIES:
+    channel.queue_bind(
+        exchange=EXCHANGE_NAME,
+        queue=QUEUE_NAME,
+        routing_key=severity,
+    )
 
 
 def handle_task(cb_channel, method, _, body):
@@ -42,7 +48,7 @@ def handle_task(cb_channel, method, _, body):
 
     Simulates complex task via time.sleep
     """
-    print(f' [x] Received {body.decode()}')
+    print(f' [x] {method.routing_key}:{body.decode()}')
 
     time.sleep(body.count(b'.'))
 

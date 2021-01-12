@@ -3,6 +3,7 @@
 Simple, naive, producer
 """
 
+from typing import List, Tuple
 import sys
 from connect import connect
 
@@ -13,26 +14,32 @@ connection = connect()
 channel = connection.channel()
 
 # declare an exchange with a fanout, or pub-sub, model
-EXCHANGE_NAME = 'logs'
+EXCHANGE_NAME = 'direct_logs'
 channel.exchange_declare(
     exchange=EXCHANGE_NAME,
-    exchange_type='fanout'
+    exchange_type='direct'
 )
 
-# a producer doesn't care a bout what queue they're publishing
-# too in a fanout model; instead they want their task to go to
-# all available queues simultaneously on the exchange
 
-# send message from cli args
-MESSAGE = ''.join(sys.argv[1:])
+def parse_input(user_input: List[str]) -> Tuple[str, str]:
+    if len(user_input) > 2:
+        return (user_input[1], ' '.join(user_input[2:]))
+
+    return ('info', ' '.join(user_input[1:]))
+
+
+SEVERITY, MESSAGE = parse_input(sys.argv)
+
+print(f'severity: { SEVERITY }')
+print(f'message: { MESSAGE }')
 
 channel.basic_publish(
     exchange=EXCHANGE_NAME,
-    routing_key='',
+    routing_key=SEVERITY,
     body=MESSAGE.encode('UTF8'),
 )
 
-print(f' [x] Sent {MESSAGE}')
+print(f' [x] Sent {SEVERITY}: {MESSAGE}')
 
 # close the broker connection
 connection.close()

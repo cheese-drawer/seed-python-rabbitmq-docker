@@ -12,7 +12,6 @@ load_dotenv(os.path.abspath('app/.secrets'))
 # setup broker credentials using secrets or defaults
 _BROKER_USER = os.getenv('BROKER_USER', 'guest')
 _BROKER_PASS = os.getenv('BROKER_PASS', 'guest')
-print(f'creating credentials with user {_BROKER_USER} & pass {_BROKER_PASS}')
 _credentials = pika.PlainCredentials(_BROKER_USER, _BROKER_PASS)
 
 # create connection, assumes broker available at
