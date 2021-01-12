@@ -14,18 +14,18 @@ connection = connect()
 channel = connection.channel()
 
 # declare an exchange with a fanout, or pub-sub, model
-EXCHANGE_NAME = 'direct_logs'
+EXCHANGE_NAME = 'topic_logs'
 channel.exchange_declare(
     exchange=EXCHANGE_NAME,
-    exchange_type='direct'
+    exchange_type='topic'
 )
 
 
 def parse_input(user_input: List[str]) -> Tuple[str, str]:
-    if len(user_input) > 2:
-        return (user_input[1], ' '.join(user_input[2:]))
+    if len(user_input) > 3:
+        return ('.'.join(user_input[1:3]), ' '.join(user_input[3:]))
 
-    return ('info', ' '.join(user_input[1:]))
+    return ('anonymous.info', ' '.join(user_input[1:]))
 
 
 SEVERITY, MESSAGE = parse_input(sys.argv)

@@ -14,10 +14,10 @@ channel = connection.channel()
 
 
 # declare the same exchange as the producer
-EXCHANGE_NAME = 'direct_logs'
+EXCHANGE_NAME = 'topic_logs'
 channel.exchange_declare(
     exchange=EXCHANGE_NAME,
-    exchange_type='direct'
+    exchange_type='topic'
 )
 
 
@@ -25,7 +25,7 @@ channel.exchange_declare(
 SEVERITIES = sys.argv[1:]
 
 if not SEVERITIES:
-    sys.stderr.write(f'Usage: {sys.argv[0]} [info] [warn] [error]')
+    sys.stderr.write(f'Usage: {sys.argv[0]} n * [source.severity]')
     sys.exit(1)
 
 # uses anonymous temporary queues again
@@ -36,6 +36,8 @@ QUEUE_NAME = queue.method.queue
 # create a queue binding for each severity supplied
 # using the severity as the routing_key
 for severity in SEVERITIES:
+    print(f'listening for { severity }')
+
     channel.queue_bind(
         exchange=EXCHANGE_NAME,
         queue=QUEUE_NAME,
@@ -54,9 +56,6 @@ def handle_task(cb_channel, method, _, body):
 
     print(" [x] Done")
 
-    # moved acknowledgment to inside the handler
-    # this allows a task that was never completed to be
-    # reassigned by the broker if this worker fails
     cb_channel.basic_ack(delivery_tag=method.delivery_tag)
 
 

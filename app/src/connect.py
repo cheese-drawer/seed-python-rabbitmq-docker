@@ -20,5 +20,5 @@ _credentials = pika.PlainCredentials(_BROKER_USER, _BROKER_PASS)
 _parameters = pika.ConnectionParameters('localhost', 5672, '/', _credentials)
 
 
-def connect():
+def connect() -> pika.BlockingConnection:
     return pika.BlockingConnection(_parameters)
