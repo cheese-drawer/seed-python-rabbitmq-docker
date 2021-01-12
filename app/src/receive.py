@@ -12,13 +12,32 @@ connection = connect()
 # create channel on connection
 channel = connection.channel()
 
-# change channel to durable, requires renaming it
-# because a channel can't be modified after it's been declared
-CHANNEL_NAME = 'task_queue'
-channel.queue_declare(queue=CHANNEL_NAME, durable=True)
+
+# declare the same exchange as the producer
+EXCHANGE_NAME = 'logs'
+channel.exchange_declare(
+    exchange=EXCHANGE_NAME,
+    exchange_type='fanout'
+)
 
 
-def handle_task(channel, method, properties, body):
+# using an empty queue name allows for the creation of a new,
+# anonymous queue every time a producer or consumer connects
+# this means that a consumer won't receive all the old messages
+# from the queue upon connection, & will only begin receiving
+# messages created after connection
+# by assigning the queue to a variable, we can refer to it
+# later, allowing us to close the queue when this worker ends
+CHANNEL_NAME = ''
+queue = channel.queue_declare(queue=CHANNEL_NAME, exclusive=True)
+QUEUE_NAME = queue.method.queue
+channel.queue_bind(
+    exchange=EXCHANGE_NAME,
+    queue=QUEUE_NAME
+)
+
+
+def handle_task(cb_channel, method, _, body):
     """Simple task handler
 
     Simulates complex task via time.sleep
@@ -32,12 +51,9 @@ def handle_task(channel, method, properties, body):
     # moved acknowledgment to inside the handler
     # this allows a task that was never completed to be
     # reassigned by the broker if this worker fails
-    channel.basic_ack(delivery_tag=method.delivery_tag)
+    cb_channel.basic_ack(delivery_tag=method.delivery_tag)
 
 
-# tells this worker to only grab one task at a time,
-# waiting until done with it to grab the next
-channel.basic_qos(prefetch_count=1)
 # setup handler
 channel.basic_consume(
     queue=CHANNEL_NAME,

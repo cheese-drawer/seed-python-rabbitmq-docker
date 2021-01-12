@@ -4,7 +4,6 @@ Simple, naive, producer
 """
 
 import sys
-import pika
 from connect import connect
 
 # use connection from connection configuration package
@@ -13,23 +12,24 @@ connection = connect()
 # create channel on connection
 channel = connection.channel()
 
-# change channel to durable, requires renaming it
-# because a channel can't be modified after it's been declared
-CHANNEL_NAME = 'task_queue'
-channel.queue_declare(queue=CHANNEL_NAME, durable=True)
+# declare an exchange with a fanout, or pub-sub, model
+EXCHANGE_NAME = 'logs'
+channel.exchange_declare(
+    exchange=EXCHANGE_NAME,
+    exchange_type='fanout'
+)
+
+# a producer doesn't care a bout what queue they're publishing
+# too in a fanout model; instead they want their task to go to
+# all available queues simultaneously on the exchange
 
 # send message from cli args
 MESSAGE = ''.join(sys.argv[1:])
 
 channel.basic_publish(
-    exchange='',
-    routing_key=CHANNEL_NAME,
-    # encode as bytes to match expected type
+    exchange=EXCHANGE_NAME,
+    routing_key='',
     body=MESSAGE.encode('UTF8'),
-    # make message persistent
-    properties=pika.BasicProperties(
-        delivery_mode=2
-    )
 )
 
 print(f' [x] Sent {MESSAGE}')
