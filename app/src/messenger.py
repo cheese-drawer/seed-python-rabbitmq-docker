@@ -6,7 +6,7 @@ Opinionated package only sets up one kind of exchange
 """
 
 from __future__ import annotations
-from typing import Callable, Optional
+from typing import List, Callable
 import os
 import pika
 
@@ -47,12 +47,7 @@ class Messenger:
             exchange_type='topic'
         )
 
-    def close(self) -> None:
-        return self._connection.close()
-
-
-class Producer(Messenger):
-    def send(self, message: str, topic: str = '') -> Producer:
+    def produce(self, message: str, topic: str = '') -> Messenger:
         self._channel.basic_publish(
             exchange=_BROKER_EXCHANGE_NAME,
             routing_key=topic,
@@ -61,33 +56,23 @@ class Producer(Messenger):
 
         return self
 
-    def send_once(self, message: str, topic: str = '') -> None:
-        return self.send(message, topic).close()
-
-
-class Consumer(Messenger):
-    def __init__(
+    def setup_consumer(
         self,
-        host: str = _BROKER_HOST,
-        port: int = int(_BROKER_PORT),
-        user: str = _BROKER_USER,
-        password: str = _BROKER_PASS,
-    ):
-        super().__init__(host=host, port=port, user=user, password=password)
-
+        topics: List[str],
+        on_consume: Callable[[str, str], None]
+    ) -> Messenger:
         queue = self._channel.queue_declare(queue='', exclusive=True)
-        self._queue_name = queue.method.queue or ''
+        queue_name = queue.method.queue or ''
 
-    def queue_bind(self, topic: str) -> Consumer:
-        self._channel.queue_bind(
-            exchange=_BROKER_EXCHANGE_NAME,
-            queue=self._queue_name,
-            routing_key=topic,
-        )
+        for topic in topics:
+            print(f'listening on {topic}')
 
-        return self
+            self._channel.queue_bind(
+                exchange=_BROKER_EXCHANGE_NAME,
+                queue=queue_name,
+                routing_key=topic,
+            )
 
-    def consume(self, on_consume: Callable[[str, str], None]):
         def handler(channel, method, _, body):
             on_consume(body.decode(), method.routing_key)
 
@@ -98,4 +83,10 @@ class Consumer(Messenger):
             on_message_callback=handler,
         )
 
+        return self
+
+    def start_consuming(self) -> None:
         self._channel.start_consuming()
+
+    def close(self) -> None:
+        return self._connection.close()
