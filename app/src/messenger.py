@@ -7,6 +7,7 @@ Opinionated package only sets up one kind of exchange
 
 from __future__ import annotations
 from typing import List, Callable
+import logging
 import os
 import pika
 
