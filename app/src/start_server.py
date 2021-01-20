@@ -40,6 +40,11 @@ async def _run_workers() -> Any:
     return await asyncio.gather(*[worker.run() for worker in workers])
 
 
+async def _stop_workers(stop_methods: List[Callable[[], Awaitable[None]]]) -> Any:
+    """Collects worker _stop methods & awaits them, similar to _run_workers."""
+    return await asyncio.gather(*[stop() for stop in stop_methods])
+
+
 def run() -> None:
     """Run all registered workers in asyncio loop.
 
@@ -49,7 +54,7 @@ def run() -> None:
     loop = asyncio.get_event_loop()
     # tell it to start the worker & assign the result to variable
     # to be used later to stop the worker
-    stop_worker = loop.run_until_complete(_run_workers())
+    stop_methods = loop.run_until_complete(_run_workers())
 
     try:
         # enter an infinite loop to wait for tasks
@@ -59,6 +64,6 @@ def run() -> None:
         pass
     finally:
         # by allowing worker to stop completely before killing process
-        loop.run_until_complete(stop_worker())
+        loop.run_until_complete(_stop_workers(stop_methods))
 
     loop.close()
