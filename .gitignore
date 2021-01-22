@@ -12,3 +12,6 @@ __pycache__/
 # secret files
 .secrets
 TODO
+
+# testing coverage reports
+.coverage

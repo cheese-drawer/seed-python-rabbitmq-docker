@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+
+./scripts/autofix
+./scripts/lint
+pytest --cov=app "$@"
