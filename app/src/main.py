@@ -18,7 +18,6 @@ by the `register_worker` & `run` methods from `start_server`.
 """
 
 # stdlib imports
-import asyncio
 import logging
 import os
 
@@ -26,8 +25,11 @@ import os
 from dotenv import load_dotenv
 
 # internal dependencies
-from rpc_worker import RPCWorker, ConnectionParameters
+from rpc_worker import ConnectionParameters, RPCWorker
 from start_server import register_worker, run
+
+# application logic
+import lib
 
 #
 # ENVIRONMENT
@@ -41,20 +43,20 @@ load_dotenv(os.path.abspath('app/.secrets'))
 
 
 def get_mode() -> str:
-    """Helper to determine if running as 'production' or 'development'.
+    """Determine if running application in 'production' or 'development'.
 
     Uses `MODE` environment variable & falls back to 'development' if no
     variable exists. Requires mode to be set to either 'development' OR
     'production', raises an error if anything else is specified.
     """
-
     env = os.getenv('MODE', 'development')  # default to 'development'
 
     if env in ('development', 'production'):
         return env
 
     raise TypeError(
-        'MODE must be either [production], [development], or unset (defaults to [development])')
+        'MODE must be either [production], [development], or unset '
+        '(defaults to [development])')
 
 
 MODE = get_mode()
@@ -107,39 +109,55 @@ rpc = RPCWorker(connection_params)
 # define a function immediately after the decorator that will handle all
 # messages received on the named route
 @rpc.route('test')
-# NOTE: routes must return a string, this will be the message sent via the worker
-# most of the time, you'll probably use `json.dumps` to encode your data as a string
-# but sometimes it may not get all the attributes you want, so I didn't make
-# the route decorator automatically encode it for you
+# NOTE: routes must return a string, this will be the message sent via the
+# worker most of the time, you'll probably use `json.dumps` to encode your
+# data as a string but sometimes it may not get all the attributes you
+# want, so I didn't make the route decorator automatically encode it for
+# you
 async def test(*, data: str) -> str:
-    """This is just a contrived example of an long running handler
-    that uses async/await to allow other tasks to be handled while
+    """Contrived example of an long running handler.
+
+    Uses async/await to allow other tasks to be handled while
     this one runs.
     """
-    result = f'{data} processed'
-    await asyncio.sleep(1)  # pretend to do work that takes 1 second
+    # Awaiting methods that may take a long time is best practice. This allows
+    # the worker to handle other requests while waiting on this one to be
+    # ready.
+    processed = await lib.do_a_long_thing()
+    result = f'{data} {processed}'
     LOGGER.info(result)  # print result when processed
     # tasks must return an object capable of being JSON serialized
     # the result is sent as JSON reply to the task originator
     return result
 
 
+@rpc.route('will-error')
+# NOTE: routes must return a string, this will be the message sent via the
+# worker most of the time, you'll probably use `json.dumps` to encode your
+# data as a string but sometimes it may not get all the attributes you
+# want, so I didn't make the route decorator automatically encode it for
+# you
+async def will_error(*, data: str) -> str:
+    """Simplified example of a handler that raises an Exception."""
+    an_int = lib.do_a_quick_thing()
+
+    raise Exception(f'Just an exception: {an_int}, {data}')
+
+
 #
-# NOTE: Documenting a possible common mistake
-#
-# - uncomment to see what it looks like in the type checker
-# - delete in production
+# NOTE: The commented out code below is to document a possible common mistake
 #
 # @rpc.route('sync_test')
 # def sync_test(*, data: str) -> str:
-#     """This is an example of an easy mistake to make if not using mypy type checking.
+#     """Example of an easy mistake to make if not using mypy type checking.
 #
-#     `rpc.route` decorator can only be used on async functions. Type checking will
-#     alert you if you forget the async keyword, but if you run the code (either because
-#     you missed the mypy error or aren't using type checking) then the error will be
-#     rather cryptic, like the following:
+#     `rpc.route` decorator can only be used on async functions. Type checking
+#     will alert you if you forget the async keyword, but if you run the code
+#     (either because you missed the mypy error or aren't using type checking)
+#     then the following error will be raised when you start the application:
 #
-#         Exception: TypeError("object str can't be used in 'await' expression")
+#         TypeError: Handler <function sync_test at {function_memory_id}> must
+#         be a coroutine function
 #     """
 #     result = f'{data} processed synchronously'
 #     LOGGER.info(result)
@@ -151,9 +169,20 @@ async def test(*, data: str) -> str:
 # RUN WORKER
 #
 
-# adds rpc to list of workers to be run when application is executed
-# run application by calling `python -m app/src` from project root
+# Adds rpc to list of workers to be run when application is executed
 register_worker(rpc)
+# NOTE: Registering the worker here like this allows for registering multiple
+# workers. This means the same application can have an RPCWorker as well
+# as any other Worker intended for a different AMQP Pattern (i.e. work
+# queues or fanout)
+# Adding an additional worker just requires initializing an instance of it
+# above, then passing that instance (after adding any routes or other
+# config) to another call to `register_worker()`:
+# register_worker(some_worker)
 
-# run all registered workers
+# Run all registered workers
+# NOTE: using run like this encapsulates all the asyncio event loop
+# management to run all of the workers passed to `register_worker()`
+# simultaneously & asynchronously without having to clutter up the code
+# here for the application API
 run()
