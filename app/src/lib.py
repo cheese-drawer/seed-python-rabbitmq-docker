@@ -18,6 +18,6 @@ async def do_a_long_thing() -> str:
 
     Returns a string that never changes.
     """
-    await asyncio.sleep(10)
+    await asyncio.sleep(1)
 
     return 'that took forever'
