@@ -25,7 +25,8 @@ import os
 from dotenv import load_dotenv
 
 # internal dependencies
-from rpc_worker import ConnectionParameters, RPCWorker
+from connection import ConnectionParameters
+from rpc_worker import RPCWorker
 from start_server import register_worker, run
 
 # application logic
