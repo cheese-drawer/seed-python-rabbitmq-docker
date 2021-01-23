@@ -25,9 +25,8 @@ import os
 from dotenv import load_dotenv
 
 # internal dependencies
-from connection import ConnectionParameters
-from rpc_worker import RPCWorker
-from start_server import register_worker, run
+from worker import ConnectionParameters, RPCWorker
+from start_server import register_worker
 
 # application logic
 import lib
@@ -180,10 +179,3 @@ register_worker(rpc)
 # above, then passing that instance (after adding any routes or other
 # config) to another call to `register_worker()`:
 # register_worker(some_worker)
-
-# Run all registered workers
-# NOTE: using run like this encapsulates all the asyncio event loop
-# management to run all of the workers passed to `register_worker()`
-# simultaneously & asynchronously without having to clutter up the code
-# here for the application API
-run()

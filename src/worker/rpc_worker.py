@@ -18,10 +18,10 @@ from typing import (cast,
 from aio_pika.patterns import RPC
 from mypy_extensions import NamedArg
 
-from connection import connect, ConnectionParameters
-from response import Response, OkResponse, ErrResponse
-from serializer import serialize, deserialize
-from worker_base import Worker
+from .connection import connect, ConnectionParameters
+from .response import Response, OkResponse, ErrResponse
+from .serializer import serialize, deserialize
+from .worker_base import Worker
 
 #
 # EXTENDING aio_pika.RPC

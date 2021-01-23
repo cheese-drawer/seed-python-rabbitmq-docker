@@ -1,11 +1,11 @@
 import logging
-from typing import Callable, Awaitable, Any, Union, List
+from typing import Callable, Awaitable, Any, Union
 
 from aio_pika.patterns import RPC, Master
 from aio_pika.channel import Channel
 from aio_pika.connection import Connection
 
-from connection import ConnectionParameters
+from .connection import ConnectionParameters
 
 
 class Worker:

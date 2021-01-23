@@ -1,6 +1,7 @@
-# Simple Flask server on Docker
+# Python microservice seed project
 
-The following seed project can be used to set up any Flask-based server to run in Docker. The project structure places the Docker & dev environment files at the root, with the python application inside `./app`:
+The following seed project can be used to set up any Flask-based server to run in Docker.
+The project structure places the Docker & dev environment files at the root, with the python application inside `./app`:
 
 ```
 .
@@ -21,9 +22,11 @@ The following seed project can be used to set up any Flask-based server to run i
         |_ sever_spec.py  # structure should mirror that of ./app/src
 ```
 
-To use this to seed a new project, just download a release, decompress it, and start modifying as needed. Alternatively, clone a branch to your local machine, then delete the `.git/` directory and init a new repo with `git init`.
+To use this to seed a new project, just download a release, decompress it, and start modifying as needed.
+Alternatively, clone a branch to your local machine, then delete the `.git/` directory and init a new repo with `git init`.
 
-To run run the service, first build your image using `docker build -t {YOUR_IMAGE_NAME_HERE} .`. When built, you can then start the service using the following `docker run` command:
+To run run the service, first build your image using `docker build -t {YOUR_IMAGE_NAME_HERE} .`.
+When built, you can then start the service using the following `docker run` command:
 
 ```
 docker run \

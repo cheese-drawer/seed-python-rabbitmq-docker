@@ -1,7 +1,7 @@
 import gzip
 from typing import Any
 
-from response import Response, ErrResponse
+from .response import Response, ErrResponse
 
 
 def serialize(serializer: Any, data: Response) -> bytes:
