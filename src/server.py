@@ -25,7 +25,7 @@ import os
 from dotenv import load_dotenv
 
 # internal dependencies
-from worker import ConnectionParameters, RPCWorker
+from worker import ConnectionParameters, RPCWorker, QueueWorker
 from start_server import register_worker, run
 
 # application logic
@@ -89,6 +89,7 @@ connection_params = ConnectionParameters(
 
 # initialize Worker & assign to global variable
 rpc = RPCWorker(connection_params)
+queue = QueueWorker(connection_params)
 
 
 #
@@ -144,6 +145,11 @@ async def will_error(*, data: str) -> str:
     raise Exception(f'Just an exception: {an_int}, {data}')
 
 
+@queue.route('queue-test')
+async def queue_test(*, data: str) -> None:
+    LOGGER.info(f'Task received in queue_test: {data}')
+
+
 #
 # NOTE: The commented out code below is to document a possible common mistake
 #
@@ -177,8 +183,9 @@ register_worker(rpc)
 # queues or fanout)
 # Adding an additional worker just requires initializing an instance of it
 # above, then passing that instance (after adding any routes or other
-# config) to another call to `register_worker()`:
-# register_worker(some_worker)
+# config) to another call to `register_worker()`, as seen here, where we
+# register the queue worker as well
+register_worker(queue)
 
 # Run all registered workers
 # NOTE: using run like this encapsulates all the asyncio event loop

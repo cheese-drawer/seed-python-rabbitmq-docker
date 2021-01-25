@@ -1,30 +1,26 @@
-"""Classes for making working with RabbitMQ RPC workers easier.
+"""Classes for making working with RabbitMQ Queue workers easier.
 
 Powered by aio-pika.
 """
 
 from __future__ import annotations
 import json
-from typing import (cast,
-                    Any,
-                    Awaitable,
-                    Callable,
-                    List)
+from typing import cast, Any, Awaitable, Callable, List
 
-from aio_pika.patterns import RPC
+from aio_pika.patterns import Master
 
 from .connection import ConnectionParameters
-from .response import Response, ErrResponse
+from .response import Response
 from .serializer import serialize, deserialize
-from .worker_base import Worker, Route
+from .worker_base import Worker, Route, RouteHandler
 
 #
 # EXTENDING aio_pika.RPC
 #
 
 
-class CustomJSONGzipRPC(RPC):
-    """Extend RPC pattern from aio-pika.
+class CustomJSONGzipMaster(Master):
+    """Extend Master pattern from aio-pika.
 
     - Automates encoding as JSON & UTF8, then compresses messages with Gzip.
     - Specifies what type of data must be given in order to be serialized
@@ -47,10 +43,6 @@ class CustomJSONGzipRPC(RPC):
         """
         return serialize(self.SERIALIZER, data)
 
-    def serialize_exception(self, exception: Exception) -> bytes:
-        """Wrap exceptions thrown by aio_pika.RPC in an ErrResponse."""
-        return self.serialize(ErrResponse(exception))
-
     def deserialize(self, data: bytes) -> bytes:
         """Decompress incoming message, then defer to aio_pika.RPC."""
         # Example at https://aio-pika.readthedocs.io/en/latest/patterns.html
@@ -61,34 +53,45 @@ class CustomJSONGzipRPC(RPC):
         # decompressing/deserializing
         return super().deserialize(deserialize(data))
 
+# FIXME: need to differentiate between a Worker & a task creator (needs a
+# better name than Master). Should be different classes that use
+# aio_pika's Master underneath.
+# Going with Producer & Worker to follow the concept of Producer &
+# Consumer that's central to AMQP 0-9-1 already. Still using Worker
+# because it does a better job describing what a Worker does, however.
+
 
 #
-# Worker definition
+# Producer & Worker definitions
 #
 
 
-class RPCWorker(Worker):
-    """Simplify creating an RPC worker.
+class QueueProducer:
+    pass
 
-    Uses an overloaded version of aio-pika's RPC to add automatic
-    JSON serialization/de-serialization & Gzip
+
+class QueueWorker(Worker):
+    """Simplify creating Queue worker/consumer.
+
+    Uses an overloaded version of aio-pika's Master pattern to add
+    automatic JSON serialization/de-serialization & Gzip
     compression/decompression.
 
-    See https://aio-pika.readthedocs.io/en/latest/patterns.html#rpc
+    See https://aio-pika.readthedocs.io/en/latest/patterns.html#master-worker
     for more.
     """
 
     # property types
-    _worker: RPC
+    _worker: Master
     _routes: List[Route]
 
     # class constants
-    PATTERN = CustomJSONGzipRPC
+    PATTERN = CustomJSONGzipMaster
 
     def __init__(
             self,
             connection_params: ConnectionParameters,
-            name: str = 'RPCWorker'):
+            name: str = 'QueueWorker'):
         self._routes = []
         super().__init__(connection_params, name)
 
@@ -96,16 +99,17 @@ class RPCWorker(Worker):
         # pylint doesn't seem to understand that PATTERN here is
         # a class variable & still accessible through `self`
         # pylint: disable=no-member
-        self._worker = await self.PATTERN.create(self._channel)
+        self._worker = self.PATTERN(self._channel)
 
-        async def register(route: Route) -> None:
+        async def create_queue(route: Route) -> None:
             self.logger.info(
                 f"Registering handler {route['handler'].__name__} "
-                f"on path {route['path']}")
-            await self._worker.register(
+                f"for queue {route['path']}")
+            await self._worker.create_worker(
                 route['path'],
                 # casting necessary because mypy gets a little confused about
                 # expected type for RPC.register
-                cast(Callable[[Any], Any], route['handler']))
+                cast(Callable[[Any], Any], route['handler']),
+                durable=True)
 
-        return register
+        return create_queue
