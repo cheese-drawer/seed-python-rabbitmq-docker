@@ -1,9 +1,8 @@
-FROM python:alpine
+FROM python:3.9.1-alpine3.12
 
+# load source code
 RUN mkdir /app
-WORKDIR /app
 COPY app /app
-
 # Enable easy dev on active container by using a bind mount via -v
 # to give the container access to the source code on your machine
 # For example, assuming you have a project directory structure like this:
@@ -27,7 +26,14 @@ COPY app /app
 # directory using `docker run -v ./app:/app ...` from your project root
 VOLUME /app
 
-RUN pip3 install -r requirements.txt
+# install build dependencies
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev
+# install python packages,
+WORKDIR /app
+RUN pip install -r requirements.txt
+# then remove build dependencies
+RUN apk del .build-deps
 
+# start server
 ENTRYPOINT ["python"]
-CMD ["app/src/server.py"]
+CMD ["/app/src/server.py"]
