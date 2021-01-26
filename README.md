@@ -20,13 +20,9 @@ The project structure places the Docker & dev environment files at the root, wit
     |   |                       # lib to initialize & manage AMQP workers,
     |   |_ server.py            # define service APIs here
     |   |_ lib.py               # example business logic, best to define it outside the API
-    |_ tests/               # pytest tests
-        |_ unit/                # unit tests go here, should mirror structure of ./app/src
-        |   |_ lib.py               # easiest to not unit test your API as it has too many
-        |                           # external, stateful & i/o bound dependencies
-        |_ integration/         # for testing the API by actually interacting with it via a test
-                                # RabbitMQ broker instance; tests defined here will be treated as
-                                # the API contract
+    |_ tests/               # pytest tests, used for unit testing any functional layers of 
+        |                   # the business logic
+        |_ lib.py               # easiest to not unit test your API as it has too many
 
 ```
 
