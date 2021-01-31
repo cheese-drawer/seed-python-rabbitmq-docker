@@ -1,0 +1,26 @@
+version: "3" # this is the Docker Compose specification
+               # version, not the app stack version
+
+services:
+
+  seed:
+    build: .
+    environment:
+      BROKER_HOST: broker
+      BROKER_USER: test # FIXME: use secrets? see https://docs.docker.com/engine/swarm/secrets/#build-support-for-docker-secrets-into-your-images
+      BROKER_PASS: pass # FIXME: use secrets?
+    volumes:
+      - ./app:/app
+
+  broker:  # Define the service name here
+    image: rabbitmq:3-management-alpine # then it's config below
+    hostname: broker
+    ports:
+      - 5672:5672
+      - 15672:15672 # Expose access to the management console on
+                    # localhost:15672 change the number before the
+                    # colon to change what port to access it by
+                    # ex: 3333:15672 means access on localhost:3333
+    environment:
+      RABBITMQ_DEFAULT_USER: test
+      RABBITMQ_DEFAULT_PASS: pass # FIXME  use secrets

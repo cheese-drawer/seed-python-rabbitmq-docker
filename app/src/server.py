@@ -20,6 +20,7 @@ by the `register_worker` & `run` methods from `start_server`.
 # stdlib imports
 import logging
 import os
+from typing import Dict, Any
 
 # external dependencies
 from dotenv import load_dotenv
@@ -71,9 +72,11 @@ LOGGER = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 # NOTE: or use this one for production or development
 # sets development logging based on MODE
-logging.basicConfig(level=logging.INFO
-                    if MODE == 'development'
-                    else logging.ERROR)
+logging.basicConfig(
+    level=logging.INFO
+    if MODE == 'development'
+    else logging.ERROR,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 #
@@ -86,6 +89,8 @@ connection_params = ConnectionParameters(
     port=int(os.getenv('BROKER_PORT', '5672')),
     user=os.getenv('BROKER_USER', 'guest'),
     password=os.getenv('BROKER_PASS', 'guest'))
+
+LOGGER.info(f'connecting with {connection_params}')
 
 # initialize Worker & assign to global variable
 rpc = RPCWorker(connection_params)
@@ -106,16 +111,8 @@ queue = QueueWorker(connection_params)
 
 
 # NOTE: define a route using the @rpc.route decorator provided by RPCWorker
-# name the route as a string argument provided to the decorator then
-# define a function immediately after the decorator that will handle all
-# messages received on the named route
 @rpc.route('test')
-# NOTE: routes must return a string, this will be the message sent via the
-# worker most of the time, you'll probably use `json.dumps` to encode your
-# data as a string but sometimes it may not get all the attributes you
-# want, so I didn't make the route decorator automatically encode it for
-# you
-async def test(*, data: str) -> str:
+async def test(data: str) -> str:
     """Contrived example of an long running handler.
 
     Uses async/await to allow other tasks to be handled while
@@ -133,42 +130,30 @@ async def test(*, data: str) -> str:
 
 
 @rpc.route('will-error')
-# NOTE: routes must return a string, this will be the message sent via the
-# worker most of the time, you'll probably use `json.dumps` to encode your
-# data as a string but sometimes it may not get all the attributes you
-# want, so I didn't make the route decorator automatically encode it for
-# you
-async def will_error(*, data: str) -> str:
+async def will_error(data: str) -> str:
     """Simplified example of a handler that raises an Exception."""
     an_int = lib.do_a_quick_thing()
 
     raise Exception(f'Just an exception: {an_int}, {data}')
 
 
+@rpc.route('foo')
+async def foo(data: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        **data,
+        'bar': 'baz'
+    }
+
+
 @queue.route('queue-test')
-async def queue_test(*, data: str) -> None:
+async def queue_test(data: str) -> None:
+    """Simplified example of a queue consumer handler.
+
+    Unlike RPC routes, Queue routes do not need to return anything as no
+    response is sent. Instead, they simply perform some work usually using
+    the given data. This example simply logs the data.
+    """
     LOGGER.info(f'Task received in queue_test: {data}')
-
-
-#
-# NOTE: The commented out code below is to document a possible common mistake
-#
-# @rpc.route('sync_test')
-# def sync_test(*, data: str) -> str:
-#     """Example of an easy mistake to make if not using mypy type checking.
-#
-#     `rpc.route` decorator can only be used on async functions. Type checking
-#     will alert you if you forget the async keyword, but if you run the code
-#     (either because you missed the mypy error or aren't using type checking)
-#     then the following error will be raised when you start the application:
-#
-#         TypeError: Handler <function sync_test at {function_memory_id}> must
-#         be a coroutine function
-#     """
-#     result = f'{data} processed synchronously'
-#     LOGGER.info(result)
-#
-#     return result
 
 
 #

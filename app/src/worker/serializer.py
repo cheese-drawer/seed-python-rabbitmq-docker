@@ -48,18 +48,19 @@ def serialize(serializer: Any, data: Response) -> bytes:
     return gzip.compress(as_json.encode('UTF8'))
 
 
-def deserialize(data: bytes) -> bytes:
+def deserialize(data: bytes) -> str:
     """Decompresses the given data using gzip.
 
     Arguments:
         data: bytes -- the bytes in need of decompressing
+                       & decoding
 
     Returns:
-        bytes
+        str
 
     Used to share modifications to deserialization behavior between
     aio_pika.pattern extensions. Assumes user will be deferring the
     rest of the deserialization to the parent class via
     `super().deserialize()`
     """
-    return gzip.decompress(data)
+    return gzip.decompress(data).decode('UTF8')

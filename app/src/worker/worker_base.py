@@ -17,7 +17,9 @@ from .response import Response, OkResponse, ErrResponse
 #
 
 
-RouteHandler = Callable[[NamedArg(str, 'data')], Awaitable[Any]]
+# PENDS python 3.9 support in pylint
+# pylint: disable=unsubscriptable-object
+RouteHandler = Callable[[Any], Awaitable[Any]]
 
 
 class Route(TypedDict):
@@ -103,13 +105,13 @@ class Worker:
         def wrap_handler(
                 path: str,
                 handler: RouteHandler) -> RouteHandler:
-            async def wrapped(*, data: str) -> Response:
+            async def wrapped(data: Any) -> Response:
                 self.logger.info(f'TASK RECEIVED {path}')
 
                 response: Response
 
                 try:
-                    result = await handler(data=data)
+                    result = await handler(data)
                     response = OkResponse(result)
                 # Ignoring broad-except pylint warning here because the intent
                 # is to catch every error thrown while awaiting & executing a
