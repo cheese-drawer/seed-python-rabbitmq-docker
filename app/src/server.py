@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 
 # internal dependencies
 from worker import ConnectionParameters, RPCWorker, QueueWorker
-from start_server import register_worker, run
+from start_server import Runner
 
 # application logic
 import lib
@@ -160,8 +160,10 @@ async def queue_test(data: str) -> None:
 # RUN WORKER
 #
 
+runner = Runner()
+
 # Adds rpc to list of workers to be run when application is executed
-register_worker(rpc)
+runner.register_worker(rpc)
 # NOTE: Registering the worker here like this allows for registering multiple
 # workers. This means the same application can have an RPCWorker as well
 # as any other Worker intended for a different AMQP Pattern (i.e. work
@@ -170,11 +172,11 @@ register_worker(rpc)
 # above, then passing that instance (after adding any routes or other
 # config) to another call to `register_worker()`, as seen here, where we
 # register the queue worker as well
-register_worker(queue)
+runner.register_worker(queue)
 
 # Run all registered workers
 # NOTE: using run like this encapsulates all the asyncio event loop
 # management to run all of the workers passed to `register_worker()`
 # simultaneously & asynchronously without having to clutter up the code
 # here for the application API
-run()
+runner.run()
