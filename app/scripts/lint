@@ -1,8 +1,0 @@
-#!/usr/bin/bash
-
-echo "PYLINT"
-pylint src/*
-echo "PYCODESTYLE"
-pycodestyle src/*
-echo "PYDOCSTYLE"
-pydocstyle src/*
