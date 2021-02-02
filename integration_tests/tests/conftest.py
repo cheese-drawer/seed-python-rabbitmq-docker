@@ -11,7 +11,7 @@ def connection_and_channel() -> Tuple[Connection, Channel]:
     """Set up & tears down a connection to the test broker."""
     connection, channel = connect(
         host='localhost',
-        port=5672,
+        port=8672,
         user='test',
         password='pass'
     )

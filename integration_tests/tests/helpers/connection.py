@@ -1,6 +1,5 @@
 """Test helper to establish connection & channel to & on AMQP broker."""
 
-import signal
 from time import sleep
 from typing import Tuple, Optional
 
