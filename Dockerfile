@@ -2,7 +2,8 @@ FROM python:3.9.1-alpine3.12
 
 # load source code
 RUN mkdir /app
-COPY app /app
+COPY app/src /app/src
+COPY app/requirements/prod.txt /app/requirements.txt
 # Enable easy dev on active container by using a bind mount via -v
 # to give the container access to the source code on your machine
 # For example, assuming you have a project directory structure like this:

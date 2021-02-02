@@ -6,7 +6,9 @@
 # directory (containing python env & tests)
 current_dir=`dirname "$0"`
 cd $current_dir
-eval "$(direnv export bash)"
+# Only use the following line if needing to enable
+# a python environment
+# eval "$(direnv export bash)"
 
 #
 # START-UP DOCKER STACK
@@ -18,7 +20,7 @@ docker-compose --file ../dev.docker-compose.yml up -d
 # Handle errors in docker-compose call
 DOCKER_UP_EXIT=$?
 
-if [$DOCKER_UP_EXIT != 0] ; then
+if [ $DOCKER_UP_EXIT != 0 ] ; then
     echo "It's possible you haven't built the application image yet, try running ./scripts/build, then run ./scripts/dev again."
 
     exit $DOCKER_UP_EXIT
@@ -34,7 +36,7 @@ fi
 # loop is pushed to the background to allow for stack logs
 # to be pulled to the foreground in the next command
 while sleep 1; do
-    rg --files ../app | entr -d docker-compose --file ../dev.docker-compose.yml restart seed
+    rg --files ../app/src | entr -d docker-compose --file ../dev.docker-compose.yml restart seed
 done &
 # save while loop's PID to be able to kill it later
 WATCHER_PID=$!

@@ -10,7 +10,7 @@ services:
       BROKER_USER: test # FIXME: use secrets? see https://docs.docker.com/engine/swarm/secrets/#build-support-for-docker-secrets-into-your-images
       BROKER_PASS: pass # FIXME: use secrets?
     volumes:
-      - ./app:/app
+      - ./app/src:/app/src
 
   broker:  # Define the service name here
     image: rabbitmq:3-management-alpine # then it's config below
