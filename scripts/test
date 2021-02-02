@@ -1,0 +1,110 @@
+#!/usr/bin/bash
+
+
+#
+# PREREQS
+#
+
+function check-err {
+    if [ "$1" != 0 ]; then
+        echo "There was an error, exiting script."
+        echo "Error message: $2"
+        exit $1;
+    fi
+}
+
+./scripts/autofix
+check-err $? "Error in calling autofix"
+./scripts/lint
+check-err $? "Error in calling lint"
+
+
+#
+# NAVIGATE TO CORRECT DIRECTORY
+#
+
+# start by going to script dir so all movements
+# from here are relative
+SCRIPT_DIR=`dirname $(realpath "$0")`
+cd $SCRIPT_DIR
+
+
+#
+# RUN TESTS
+#
+
+function unit {
+    # go to app dir
+    cd ../app
+
+    # enable app virtual environment
+    eval "$(direnv export bash)"
+
+    # run unit tests & save exit code
+    pytest "$@"
+    exit_code=$?
+
+    # return to scripts directory
+    cd $SCRIPT_DIR
+    # save exit code from tests
+    unit_result=$exit_code
+}
+
+function e2e {
+    # go to app dir
+    cd ../integration_tests
+
+    # enable app virtual environment
+    eval "$(direnv export bash)"
+
+    # run unit tests & save exit code
+    pytest "$@"
+    exit_code=$?
+
+    # return to scripts directory
+    cd $SCRIPT_DIR
+    # save exit code from tests
+    e2e_result=$exit_code
+}
+
+# Run unit tests or integration tests if one is specified
+# by passing unit, e2e, or integration as first argument to
+# this script, otherwise run both unit tests & integration
+# tests.
+# Additionally, arguments can be passed to pytest command
+# after specifying unit or integration, but no arguments can
+# be passed if unit or integration isn't specified.
+if [ !$1 ]; then
+    echo ""
+    echo "Starting unit tests..."
+    echo ""
+    unit
+    echo ""
+
+    echo ""
+    echo "Starting integration tests..."
+    echo ""
+    e2e
+    echo ""
+
+    if [[ $unit_result != 0 && $e2e_result != 0 ]]; then
+        echo "Errors found in both unit & integration tests. See output above."
+        exit $unit_result
+    elif [[ $unit_result != 0 && $e2e_result == 0 ]]; then
+        echo "Errors found in unit. See output above."
+        exit $unit_result
+    elif [[ $unit_result == 0 && $e2e_result != 0 ]]; then
+        echo "Errors found in integration tests. See output above."
+        exit $e2e_result
+    fi
+
+elif [ $1 == 'unit' ]; then
+    unit ${@:2}
+    exit $unit_result
+elif [[ $1 == 'e2e' || $1 == 'integration' ]]; then
+    e2e ${@:2}
+    exit $e2e_result
+else
+    echo "Bad argument given, either specify \`unit\` or \`integration\` tests by giving either word as your first argument to this script, or run both by giving no arguments."
+    exit 1
+fi
