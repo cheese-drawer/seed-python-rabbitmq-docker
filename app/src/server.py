@@ -22,9 +22,6 @@ import logging
 import os
 from typing import Dict, Any
 
-# external dependencies
-from dotenv import load_dotenv
-
 # internal dependencies
 from worker import ConnectionParameters, RPCWorker, QueueWorker
 from start_server import Runner
@@ -35,12 +32,6 @@ import lib
 #
 # ENVIRONMENT
 #
-
-# Loads environment variables stored in a secrets dotfile keep sensitive
-# information here (i.e. broker authentication data, host address, etc.)
-# to avoid having it committed in git This file requires manual creation,
-# see README for more information.
-load_dotenv(os.path.abspath('.secrets'))
 
 
 def get_mode() -> str:
@@ -56,8 +47,8 @@ def get_mode() -> str:
         return env
 
     raise TypeError(
-        'MODE must be either [production], [development], or unset '
-        '(defaults to [development])')
+        'MODE must be either `production`, `development`, or unset '
+        '(defaults to `development`)')
 
 
 MODE = get_mode()
