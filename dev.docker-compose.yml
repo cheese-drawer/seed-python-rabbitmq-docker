@@ -6,6 +6,7 @@ services:
   seed:
     build: .
     environment:
+      MODE: development
       BROKER_HOST: broker
       BROKER_USER: test
       BROKER_PASS: pass # DONT DO THIS IN PROD -- acceptable in dev,
@@ -13,12 +14,16 @@ services:
                         # in conjunction with docker swarm in place
                         # of docker compose
       BROKER_PORT: 8672
-      MODE: development
+      DB_HOST: db
+      DB_USER: test
+      DB_PASS: pass
+      DB_NAME: dev
     volumes:
       - ./app/src:/app/src
 
   broker:  # Define the service name here
     image: rabbitmq:3-management-alpine # then it's config below
+    restart: always
     hostname: broker
     ports:
       - 8672:8672   # changed from default of 5672 for dev use; this
@@ -49,3 +54,16 @@ services:
     #                               # of docker compose
     volumes:
       - ./rabbitmq-configs:/etc/rabbitmq
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: dev
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: pass # DONT DO THIS IN PROD -- acceptable in dev,
+                              # but docker secrets should be used in prod
+                              # in conjunction with docker swarm in place
+                              # of docker compose
