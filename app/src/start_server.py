@@ -13,6 +13,24 @@ from typing import Any, Protocol, Awaitable, Callable, List
 LOGGER = getLogger(__name__)
 
 
+class Connectable(Protocol):
+    """Protocol specifying that object has connection methods.
+
+    Requires that an object have the following methods & signatures:
+
+        async connect() -> None
+        async disconnect() -> None
+    """
+
+    def connect(self) -> Awaitable[None]:
+        """Connect to the defined i/o service then return this instance."""
+        ...
+
+    def disconnect(self) -> Awaitable[None]:
+        """Connect to the defined i/o service then return this instance."""
+        ...
+
+
 class Runnable(Protocol):
     """Protocol specifying that a 'runnable' object.
 
@@ -32,6 +50,7 @@ class Runner:
     """Simple helper to handle graceful exits."""
 
     exiting: bool
+    databases: List[Connectable]
     workers: List[Runnable]
     stoppers: List[Callable[[], Awaitable[None]]]
 
@@ -40,8 +59,17 @@ class Runner:
         signal.signal(signal.SIGTERM, self._quit)
 
         self.exiting = False
+        self.databases = []
         self.workers = []
         self.stoppers = []
+
+    async def _connect_databases(self) -> Any:
+        return await asyncio.gather(
+            *[database.connect() for database in self.databases])
+
+    async def _disconnect_databases(self) -> Any:
+        return await asyncio.gather(
+            *[database.disconnect() for database in self.databases])
 
     async def _run_workers(self) -> Any:
         """Gather registered workers & await them to execute in event loop."""
@@ -51,10 +79,15 @@ class Runner:
         """Collect worker stop methods & await them."""
         return await asyncio.gather(*[stop() for stop in self.stoppers])
 
-    def _quit(self, signum: int, _: Any) -> None:
+    @staticmethod
+    def _quit(signum: int, _: Any) -> None:
         """Exit the process by raising an Exception."""
         LOGGER.info(f'Exit signal received: {signum}')
         raise SystemExit(0)
+
+    def register_database(self, database: Connectable) -> None:
+        """Add database to list to be connected to when application is run."""
+        self.databases.append(database)
 
     def register_worker(self, worker: Runnable) -> None:
         """Add worker to list to be run when application is run.
@@ -72,6 +105,8 @@ class Runner:
         """
         # setup an event loop w/ asyncio
         loop = asyncio.get_event_loop()
+        # tell it to establish database connection
+        loop.run_until_complete(self._connect_databases())
         # tell it to start the workers & assign the result to variable
         # to be used later to stop the workers
         self.stoppers = loop.run_until_complete(self._run_workers())
@@ -84,5 +119,7 @@ class Runner:
         finally:
             # by allowing worker to stop completely before killing process
             loop.run_until_complete(self._stop_workers())
+            # and by allowing database connection to close
+            loop.run_until_complete(self._disconnect_databases())
 
         loop.close()

@@ -23,7 +23,8 @@ import os
 from typing import Dict, Any
 
 # internal dependencies
-from worker import ConnectionParameters, RPCWorker, QueueWorker
+import worker
+import db
 from start_server import Runner
 
 # application logic
@@ -71,21 +72,33 @@ logging.basicConfig(
 
 
 #
+# DATABASE SETUP
+#
+
+db_connection_params = db.ConnectionParameters(
+    host=os.getenv('DB_HOST', 'localhost'),
+    user=os.getenv('DB_USER', 'postgres'),
+    password=os.getenv('DB_PASS', 'postgres'),
+    database=os.getenv('DB_NAME', 'postgres'))
+
+# init db & connect
+database = db.Client(db_connection_params)
+
+
+#
 # WORKER SETUP
 #
 
 # get connection parameters from dotenv, or use defaults
-connection_params = ConnectionParameters(
+broker_connection_params = worker.ConnectionParameters(
     host=os.getenv('BROKER_HOST', 'localhost'),
     port=int(os.getenv('BROKER_PORT', '5672')),
     user=os.getenv('BROKER_USER', 'guest'),
     password=os.getenv('BROKER_PASS', 'guest'))
 
-LOGGER.info(f'connecting with {connection_params}')
-
 # initialize Worker & assign to global variable
-rpc = RPCWorker(connection_params)
-queue = QueueWorker(connection_params)
+rpc = worker.RPCWorker(broker_connection_params)
+queue = worker.QueueWorker(broker_connection_params)
 
 
 #
@@ -148,10 +161,12 @@ async def queue_test(data: str) -> None:
 
 
 #
-# RUN WORKER
+# RUN SERVICE
 #
 
 runner = Runner()
+
+runner.register_database(database)
 
 # Adds rpc to list of workers to be run when application is executed
 runner.register_worker(rpc)
