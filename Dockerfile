@@ -26,14 +26,22 @@ COPY app/requirements/prod.txt /app/requirements.txt
 # directory in your project directory to the container's /app
 # directory using `docker run -v ./app:/app ...` from your project root
 VOLUME /app
-
-# install build dependencies
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev
-# install python packages,
 WORKDIR /app
-RUN pip install -r requirements.txt
-# then remove build dependencies
-RUN apk del .build-deps
+
+# install python dependencies
+RUN apk add --no-cache --virtual .build-deps \
+    # needed to build psycopg2 & yarl
+    gcc \
+    # needed to build yarl
+    musl-dev \
+    # needed to build psycopg2
+    postgresql-dev \
+    # runtime dependency for psycopg2
+    && apk add --no-cache libpq \
+    # install python packages
+    && pip install -r requirements.txt \
+    # then remove build dependencies
+    && apk del .build-deps
 
 # start server
 ENTRYPOINT ["python"]
