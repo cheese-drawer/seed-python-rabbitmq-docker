@@ -20,7 +20,7 @@ by the `register_worker` & `run` methods from `start_server`.
 # stdlib imports
 import logging
 import os
-from typing import Dict, Any
+from typing import Any, List, Dict
 
 # internal dependencies
 import worker
@@ -147,6 +147,11 @@ async def foo(data: Dict[str, Any]) -> Dict[str, Any]:
         **data,
         'bar': 'baz'
     }
+
+
+@rpc.route('db')
+async def db_route(_: Any) -> List[Any]:
+    return await database.execute('SELECT * FROM information_schema.tables')
 
 
 @queue.route('queue-test')
