@@ -1,29 +1,37 @@
-"""A simple example of implementing an API via AMQP via an RPC pattern.
-
-Uses custom wrapping of aio_pika (which is itself a wrapper on aiomrq)
-to simplify interacting with AMQP to the point of barely needing to
-interact with it.
+"""A simple example of implementing a Service's APIs.
 
 Uses a declarative API based on decorators, similar to Flask to declare API
 'routes'.  These routes are really callback functions assigned to a queue
 (named in the decorator argument) that executes any time a message (given
 as the data keyword argument to the callback) is received on that queue.
-The return value of the handler is then sent as the response directly to the
-message originator.
 
-The RPC worker runs asynchronously, allowing it to handle multiple requests
-simultaneously & not block on a particularly long-running handler.
-This requires running the worker in an asynchronous event loop, handled here
-by the `register_worker` & `run` methods from `start_server`.
+For the Response & Request API, a handler returns a value that is then sent as
+the response directly to the message originator (this is done with an
+RPCWorker from the amqp_worker library). The Service to Service API uses a
+QueueWorker & it's route handlers don't return a value because no response is
+sent for any requests received.
+
+This example also implements a simple database interface to a Postgres server,
+using aiopg. To simplify the API definition, the db interface is wrapped in a
+simplified API that handles connecting to the server, exposing an `execute`
+method for executing SQL queries, & disconnecting to the server.
+
+The service API runs asynchronously, allowing it to handle multiple requests
+simultaneously & not block on a particularly long-running handler or database
+request. This requires running the database client & AMQP workers in an
+asynchronous event loop, handled here by the `register_database`,
+`register_worker`, & `run` methods from `start_server`.
 """
 
-# stdlib imports
+# standard library imports
 import logging
 import os
 from typing import Any, List, Dict
 
+# third party imports
+import amqp_worker as worker
+
 # internal dependencies
-import worker
 import db
 from start_server import Runner
 
@@ -97,8 +105,8 @@ broker_connection_params = worker.ConnectionParameters(
     password=os.getenv('BROKER_PASS', 'guest'))
 
 # initialize Worker & assign to global variable
-rpc = worker.RPCWorker(broker_connection_params)
-queue = worker.QueueWorker(broker_connection_params)
+response_and_request = worker.RPCWorker(broker_connection_params)
+service_to_service = worker.QueueWorker(broker_connection_params)
 
 
 #
@@ -114,8 +122,9 @@ queue = worker.QueueWorker(broker_connection_params)
 # you won't need to change anything else in many scenarios (I think)
 
 
-# NOTE: define a route using the @rpc.route decorator provided by RPCWorker
-@rpc.route('test')
+# NOTE: define a route using the @response_and_request.route decorator
+# provided by RPCWorker
+@response_and_request.route('test')
 async def test(data: str) -> str:
     """Contrived example of an long running handler.
 
@@ -133,7 +142,7 @@ async def test(data: str) -> str:
     return result
 
 
-@rpc.route('will-error')
+@response_and_request.route('will-error')
 async def will_error(data: str) -> str:
     """Simplified example of a handler that raises an Exception."""
     an_int = lib.do_a_quick_thing()
@@ -141,20 +150,22 @@ async def will_error(data: str) -> str:
     raise Exception(f'Just an exception: {an_int}, {data}')
 
 
-@rpc.route('foo')
+@response_and_request.route('foo')
 async def foo(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Alternative example that works with a Dict instead of a string."""
     return {
         **data,
         'bar': 'baz'
     }
 
 
-@rpc.route('db')
+@response_and_request.route('db')
 async def db_route(_: Any) -> List[Any]:
+    """Simplified example of a handler that queries the database."""
     return await database.execute('SELECT * FROM information_schema.tables')
 
 
-@queue.route('queue-test')
+@service_to_service.route('queue-test')
 async def queue_test(data: str) -> None:
     """Simplified example of a queue consumer handler.
 
@@ -173,8 +184,9 @@ runner = Runner()
 
 runner.register_database(database)
 
-# Adds rpc to list of workers to be run when application is executed
-runner.register_worker(rpc)
+# Adds response_and_request to list of workers to be run when application
+# is executed
+runner.register_worker(response_and_request)
 # NOTE: Registering the worker here like this allows for registering multiple
 # workers. This means the same application can have an RPCWorker as well
 # as any other Worker intended for a different AMQP Pattern (i.e. work
@@ -183,7 +195,7 @@ runner.register_worker(rpc)
 # above, then passing that instance (after adding any routes or other
 # config) to another call to `register_worker()`, as seen here, where we
 # register the queue worker as well
-runner.register_worker(queue)
+runner.register_worker(service_to_service)
 
 # Run all registered workers
 # NOTE: using run like this encapsulates all the asyncio event loop

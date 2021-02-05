@@ -1,4 +1,4 @@
 python-dotenv==0.14.0
-aio-pika>=6.7.1,<7.0.0
+https://github.com/cheese-drawer/lib-python-amqp-worker/releases/download/0.1.1/amqp_worker-0.1.1.tar.gz
 mypy>=0.800,<0.810
 aiopg>=1.1.0,<2.0.0
