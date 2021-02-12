@@ -15,3 +15,6 @@ TODO
 
 # testing coverage reports
 .coverage
+
+# dev helper scripts
+app/scripts
