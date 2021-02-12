@@ -4,14 +4,14 @@ from typing import Any, List, Dict
 
 from psycopg2 import sql
 
-from db.model import Schema, Model, Read, Client
+from db.model import ModelData, Model, Read, Client
 
 
-class ExampleItemSchema(Schema):
+class ExampleItemData(ModelData):
     """An example Item."""
 
     # PENDS python 3.9 support in pylint,
-    # Schema inherits from TypedDict
+    # ModelData inherits from TypedDict
     # pylint: disable=too-few-public-methods
 
     string: str
@@ -19,10 +19,10 @@ class ExampleItemSchema(Schema):
     json: Dict[str, Any]
 
 
-class ExampleItemReader(Read[ExampleItemSchema]):
+class ExampleItemReader(Read[ExampleItemData]):
     """Add custom method to Model.read."""
 
-    async def all_by_string(self, string: str) -> List[ExampleItemSchema]:
+    async def all_by_string(self, string: str) -> List[ExampleItemData]:
         """Read all rows with matching `string` value."""
         query = sql.SQL(
             'SELECT * '
@@ -33,13 +33,13 @@ class ExampleItemReader(Read[ExampleItemSchema]):
             string=sql.Identifier(string)
         )
 
-        result: List[ExampleItemSchema] = await self \
+        result: List[ExampleItemData] = await self \
             ._client.execute_and_return(query)
 
         return result
 
 
-class ExampleItem(Model[ExampleItemSchema]):
+class ExampleItem(Model[ExampleItemData]):
     """Build an ExampleItem Model instance."""
 
     read: ExampleItemReader

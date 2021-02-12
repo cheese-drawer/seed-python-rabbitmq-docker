@@ -29,7 +29,7 @@ from src.db.connection import ConnectionParameters
 from src.db.client import Client
 from src.db.model import (
     Model,
-    Schema,
+    ModelData,
     Read,
     UnexpectedMultipleResults,
     NoResultFound)
@@ -52,7 +52,7 @@ def get_client() -> Client:
 
 # Generic doesn't need a more descriptive name
 # pylint: disable=invalid-name
-T = TypeVar('T', bound=Schema)
+T = TypeVar('T', bound=ModelData)
 
 
 def setup(query_result: List[T]) -> Tuple[Model[T], Client]:
@@ -92,7 +92,7 @@ class TestRead:
         @staticmethod
         @pytest.mark.asyncio
         async def test_it_correctly_builds_query_with_given_id() -> None:
-            item: Schema = {'_id': uuid4()}
+            item: ModelData = {'_id': uuid4()}
             model, client = setup([item])
             await model.read.one_by_id(str(item['_id']))
             query_composed = cast(
@@ -106,7 +106,7 @@ class TestRead:
         @staticmethod
         @pytest.mark.asyncio
         async def test_it_returns_a_single_result() -> None:
-            item: Schema = {'_id': uuid4()}
+            item: ModelData = {'_id': uuid4()}
             model, _ = setup([item])
             result = await model.read.one_by_id(str(item['_id']))
 
@@ -115,7 +115,7 @@ class TestRead:
         @staticmethod
         @pytest.mark.asyncio
         async def test_it_raises_exception_if_more_than_one_result() -> None:
-            item: Schema = {'_id': uuid4()}
+            item: ModelData = {'_id': uuid4()}
             model, _ = setup([item, item])
 
             # pylint: disable=unused-variable
@@ -125,7 +125,7 @@ class TestRead:
         @staticmethod
         @pytest.mark.asyncio
         async def test_it_raises_exception_if_no_result_to_return() -> None:
-            model: Model[Schema]
+            model: Model[ModelData]
             model, _ = setup([])
 
             # pylint: disable=unused-variable
@@ -136,7 +136,7 @@ class TestRead:
 class TestCreate:
     """Testing Model.create's methods."""
 
-    class Item(Schema):
+    class Item(ModelData):
         a: str
         b: str
 
@@ -180,8 +180,8 @@ class TestCreate:
 class TestUpdate:
     """Testing Model.update's methods."""
 
-    class Item(Schema):
-        """Example Schema Item for testing."""
+    class Item(ModelData):
+        """Example ModelData Item for testing."""
         a: str
         b: str
 
@@ -234,8 +234,8 @@ class TestUpdate:
 class TestDelete:
     """Testing Model.delete's methods."""
 
-    class Item(Schema):
-        """Example Schema Item for testing."""
+    class Item(ModelData):
+        """Example ModelData Item for testing."""
         a: str
         b: str
 
@@ -315,7 +315,7 @@ class TestModel:
 
             assert old_method and callable(old_method)
 
-    class TestDefiningSchema:
+    class TestDefiningModelData:
         """Testing Model's generic types"""
 
         @staticmethod

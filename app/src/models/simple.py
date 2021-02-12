@@ -1,13 +1,13 @@
 from typing import Any, List
 
-from db.model import Schema
+from db.model import ModelData
 
 
-class SimpleSchema(Schema):
+class SimpleData(ModelData):
     """An example Item."""
 
     # PENDS python 3.9 support in pylint,
-    # Schema inherits from TypedDict
+    # ModelData inherits from TypedDict
     # pylint: disable=too-few-public-methods
 
     string: str

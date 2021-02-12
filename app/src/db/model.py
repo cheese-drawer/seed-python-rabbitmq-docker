@@ -17,8 +17,8 @@ from uuid import UUID
 from .client import Client, sql
 
 
-class Schema(TypedDict):
-    """Base interface for Schema to be used in Model."""
+class ModelData(TypedDict):
+    """Base interface for ModelData to be used in Model."""
 
     # PENDS python 3.9 support in pylint
     # pylint: disable=inherit-non-class
@@ -29,7 +29,7 @@ class Schema(TypedDict):
 
 # Generic doesn't need a more descriptive name
 # pylint: disable=invalid-name
-T = TypeVar('T', bound=Schema)
+T = TypeVar('T', bound=ModelData)
 
 
 class UnexpectedMultipleResults(Exception):

@@ -1,2 +1,2 @@
-from .example_item import ExampleItem, ExampleItemSchema
-from .simple_schema import SimpleSchema
+from .example_item import ExampleItem, ExampleItemData
+from .simple import SimpleData
