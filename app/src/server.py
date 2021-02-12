@@ -39,7 +39,7 @@ import db
 from start_server import Runner
 
 # application logic
-from models import ExampleItem, ExampleItemSchema
+from models import ExampleItem, ExampleItemSchema, SimpleSchema
 import lib
 
 #
@@ -117,6 +117,23 @@ service_to_service = worker.QueueWorker(broker_connection_params)
 # MODELS
 #
 
+# NOTE: Models are simply an organizational tool for grouping a schema &
+# related queries. A Model is initialized by giving it a Schema object as
+# a Type variable, in addition to a database client object & a table name.
+# An built Model will include a few built-in CRUD queries (create one,
+# read one by id, update one by id, & delete one by id).
+
+# NOTE: Using a Model is entirely unnecessary, but it will help with
+# separation of concerns, making it easier to decouple your application
+# logic from your database schema & queries.
+
+# If you don't need any queries beyond the built-in ones, you can simply
+# build a model from only a Schema definition, database Client object, &
+# table name
+simple_model = db.Model[SimpleSchema](database, 'simple_table')
+
+# Otherwise, it's best to extend the model object with additional queries
+# in another file, then initialize it here
 example_model = ExampleItem(database)
 
 
@@ -179,7 +196,7 @@ async def db_route(_: Any) -> List[Any]:
 
 @response_and_request.route('model')
 async def model_route(query: str) -> List[ExampleItemSchema]:
-    """ Example handler that uses Model to interact with database. """
+    """Implement example handler that uses Model to interact with database."""
     return await example_model.read.all_by_string(query)
 
 
