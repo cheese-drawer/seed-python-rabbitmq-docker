@@ -14,7 +14,10 @@ sent for any requests received.
 This example also implements a simple database interface to a Postgres server,
 using aiopg. To simplify the API definition, the db interface is wrapped in a
 simplified API that handles connecting to the server, exposing an `execute`
-method for executing SQL queries, & disconnecting to the server.
+method for executing SQL queries, & disconnecting to the server. Additionally,
+the database abstraction exposes a Model concept to encapsulate database query
+logic & type management as a separate concern from worker routing & route
+handling.
 
 The service API runs asynchronously, allowing it to handle multiple requests
 simultaneously & not block on a particularly long-running handler or database
@@ -36,6 +39,7 @@ import db
 from start_server import Runner
 
 # application logic
+from models import ExampleItem, ExampleItemSchema
 import lib
 
 #
@@ -110,6 +114,13 @@ service_to_service = worker.QueueWorker(broker_connection_params)
 
 
 #
+# MODELS
+#
+
+example_model = ExampleItem(database)
+
+
+#
 # WORKER ROUTES
 #
 
@@ -161,8 +172,15 @@ async def foo(data: Dict[str, Any]) -> Dict[str, Any]:
 
 @response_and_request.route('db')
 async def db_route(_: Any) -> List[Any]:
-    """Simplified example of a handler that queries the database."""
-    return await database.execute('SELECT * FROM information_schema.tables')
+    """Simplified example of a handler that directly queries the database."""
+    return await database.execute_and_return(
+        'SELECT * FROM information_schema.tables')
+
+
+@response_and_request.route('model')
+async def model_route(query: str) -> List[ExampleItemSchema]:
+    """ Example handler that uses Model to interact with database. """
+    return await example_model.read.all_by_string(query)
 
 
 @service_to_service.route('queue-test')
