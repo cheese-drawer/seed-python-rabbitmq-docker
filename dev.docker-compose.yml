@@ -21,8 +21,8 @@ services:
     volumes:
       - ./app/src:/app/src
 
-  broker:  # Define the service name here
-    image: rabbitmq:3-management-alpine # then it's config below
+  broker:
+    image: rabbitmq:3-management-alpine
     restart: always
     hostname: broker
     ports:
