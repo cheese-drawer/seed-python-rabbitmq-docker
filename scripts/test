@@ -2,24 +2,6 @@
 
 
 #
-# PREREQS
-#
-
-function check-err {
-    if [ "$1" != 0 ]; then
-        echo "There was an error, exiting script."
-        echo "Error message: $2"
-        exit $1;
-    fi
-}
-
-./scripts/autofix
-check-err $? "Error in calling autofix"
-./scripts/lint
-check-err $? "Error in calling lint"
-
-
-#
 # NAVIGATE TO CORRECT DIRECTORY
 #
 
@@ -34,37 +16,76 @@ cd $SCRIPT_DIR
 #
 
 function unit {
+    echo ""
+    echo "Starting type checks..."
+    echo ""
+    cd ../app
+
+    echo "Checking ./src..."
+    echo ""
+    mypy src
+    mypy_src_result=$?
+
+    if [ $mypy_src_result != 0 ]; then
+        echo "Error in typechecking, see output above."
+        exit $mypy_src_result
+    fi
+
+
+    echo ""
+    echo "Checking ./tests..."
+    echo ""
+    mypy tests
+    mypy_tests_result=$?
+
+    if [ $mypy_tests_result != 0 ]; then
+        echo "Error in typechecking, see output above."
+        exit $mypy_tests_result
+    fi
+
+    cd ../scripts
+    echo ""
+
+
+    echo ""
+    echo "Starting unit tests..."
+    echo ""
     # go to app dir
     cd ../app
 
     # enable app virtual environment
     eval "$(direnv export bash)"
+    echo ""
 
     # run unit tests & save exit code
     pytest "$@"
-    exit_code=$?
+    # save exit code from tests
+    unit_result=$?
 
     # return to scripts directory
     cd $SCRIPT_DIR
-    # save exit code from tests
-    unit_result=$exit_code
+    echo ""
 }
 
 function e2e {
+    echo ""
+    echo "Starting integration tests..."
+    echo ""
     # go to app dir
     cd ../integration_tests
 
     # enable app virtual environment
     eval "$(direnv export bash)"
+    echo ""
 
     # run unit tests & save exit code
     pytest "$@"
-    exit_code=$?
+    # save exit code from tests
+    e2e_result=$?
 
     # return to scripts directory
     cd $SCRIPT_DIR
-    # save exit code from tests
-    e2e_result=$exit_code
+    echo ""
 }
 
 # Run unit tests or integration tests if one is specified
@@ -74,18 +95,9 @@ function e2e {
 # Additionally, arguments can be passed to pytest command
 # after specifying unit or integration, but no arguments can
 # be passed if unit or integration isn't specified.
-if [ !$1 ]; then
-    echo ""
-    echo "Starting unit tests..."
-    echo ""
+if [ $# -eq 0 ]; then
     unit
-    echo ""
-
-    echo ""
-    echo "Starting integration tests..."
-    echo ""
     e2e
-    echo ""
 
     if [[ $unit_result != 0 && $e2e_result != 0 ]]; then
         echo "Errors found in both unit & integration tests. See output above."
