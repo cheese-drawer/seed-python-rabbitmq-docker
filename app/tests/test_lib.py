@@ -1,6 +1,6 @@
 import pytest
 
-from src import lib  # type: ignore
+from src import lib
 
 
 # NOTE: Using pytest-describe plugin to lend a more human readable syntax
