@@ -16,10 +16,16 @@ cd $SCRIPT_DIR
 #
 
 function unit {
+    cd ../app
+    # enable app virtual environment
+    eval "$(direnv export bash)"
+    echo ""
+
     echo ""
     echo "Starting type checks..."
     echo ""
-    cd ../app
+
+    echo "PYTHONPATH: $PYTHONPATH"
 
     echo "Checking ./src..."
     echo ""
@@ -43,18 +49,11 @@ function unit {
         exit $mypy_tests_result
     fi
 
-    cd ../scripts
     echo ""
 
 
     echo ""
     echo "Starting unit tests..."
-    echo ""
-    # go to app dir
-    cd ../app
-
-    # enable app virtual environment
-    eval "$(direnv export bash)"
     echo ""
 
     # run unit tests & save exit code
