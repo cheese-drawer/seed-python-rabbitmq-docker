@@ -22,37 +22,6 @@ function unit {
     echo ""
 
     echo ""
-    echo "Starting type checks..."
-    echo ""
-
-    echo "PYTHONPATH: $PYTHONPATH"
-
-    echo "Checking ./src..."
-    echo ""
-    mypy src
-    mypy_src_result=$?
-
-    if [ $mypy_src_result != 0 ]; then
-        echo "Error in typechecking, see output above."
-        exit $mypy_src_result
-    fi
-
-
-    echo ""
-    echo "Checking ./tests..."
-    echo ""
-    mypy tests
-    mypy_tests_result=$?
-
-    if [ $mypy_tests_result != 0 ]; then
-        echo "Error in typechecking, see output above."
-        exit $mypy_tests_result
-    fi
-
-    echo ""
-
-
-    echo ""
     echo "Starting unit tests..."
     echo ""
 
