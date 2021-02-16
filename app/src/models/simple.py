@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 from db.model import ModelData
 
@@ -12,4 +12,4 @@ class SimpleData(ModelData):
 
     string: str
     integer: int
-    array: List[Any]
+    array: List[str]
