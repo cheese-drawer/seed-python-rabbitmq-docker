@@ -18,3 +18,5 @@ TODO
 
 # dev helper scripts
 app/scripts
+.vscode/
+migrations/
