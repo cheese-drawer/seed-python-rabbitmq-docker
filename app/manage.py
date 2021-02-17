@@ -93,13 +93,19 @@ def _drop_db(cursor: Any, name: str) -> None:
     cursor.execute(drop)
 
 
-def _load_pre_migration(session: S) -> None:
+def _load_pre_migration(dsn: str) -> None:
     """
     Load schema for production server.
 
     Uses sql schema file saved at migrations/production.dump.sql
     """
-    load_sql_from_file(session, 'migrations/production.dump.sql')
+    connection = connect(dsn)
+    connection.set_session(autocommit=True)
+
+    with connection.cursor() as cursor:
+        cursor.execute(open('migrations/production.dump.sql', 'r').read())
+
+    connection.close()
 
 
 def _load_from_app(session: S) -> None:
@@ -151,6 +157,7 @@ def sync() -> None:
     `DB_[USER|PASS|HOST|NAME]` environment variables & compares to application
     schema defined at `./src/models/**/*.sql`.
     """
+    # create temp database for app schema
     with _temp_db(
             host=DB_HOST,
             user=DB_USER,
@@ -159,19 +166,28 @@ def sync() -> None:
         print(f'db url: {DB_URL}')
         print(f'temp url: {temp_db_url}')
 
-        with S(temp_db_url) as session:
-            _load_from_app(session)
+        # create sessions for current db state & target schema
+        with S(DB_URL) as from_schema_session, \
+                S(temp_db_url) as target_schema_session:
+            # load target schema to temp db
+            _load_from_app(target_schema_session)
 
-        with _get_schema_diff(DB_URL, temp_db_url) as diff:
-            pending_changes, migration = diff
+            # diff target db & current db
+            migration = Migration(
+                from_schema_session,
+                target_schema_session)
+            migration.set_safety(False)
+            migration.add_all_changes()
 
+            # handle changes
             if migration.statements:
-                print('THE FOLLOWING CHANGES ARE PENDING:', end='\n\n')
-                print(pending_changes)
+                print('\nTHE FOLLOWING CHANGES ARE PENDING:', end='\n\n')
+                print(migration.sql)
 
                 if _prompt('Apply these changes?'):
                     print('Applying...')
                     migration.apply()
+                    print('Changes applied.')
                 else:
                     print('Not applying.')
 
@@ -187,6 +203,7 @@ def pending() -> None:
     application schema defined at `./src/models/**/*.sql`, then saves
     difference at `./migrations/pending.sql`.
     """
+    # create temporary databases for prod & target schemas
     with _temp_db(
             host=DB_HOST,
             user=DB_USER,
@@ -198,16 +215,32 @@ def pending() -> None:
     ) as target_db_url:
         print(f'prod temp url: {prod_schema_db_url}')
         print(f'target temp url: {target_db_url}')
-        _load_pre_migration(prod_schema_db_url)
-        _load_from_app(target_db_url)
 
-        with _get_schema_diff(prod_schema_db_url, target_db_url) as diff:
-            pending_changes, _ = diff
+        # create sessions for both databases
+        with S(prod_schema_db_url) as from_schema_session, \
+                S(target_db_url) as target_schema_session:
+            # load both schemas into their databases
+            _load_pre_migration(prod_schema_db_url)
+            _load_from_app(target_schema_session)
 
-            print(f'Pending changes: \n{pending_changes}')
+            # get a diff
+            migration = Migration(
+                from_schema_session,
+                target_schema_session)
+            migration.set_safety(False)
+            migration.add_all_changes()
 
-            with io.open('migrations/pending.sql') as file:
-                file.write(pending_changes)
+            if migration.statements:
+                print('\nTHE FOLLOWING CHANGES ARE PENDING:', end='\n\n')
+                print(migration.sql)
+            else:
+                print('No changes needed, setting pending.sql to empty.')
+
+            # write pending changes to file
+            with io.open('migrations/pending.sql', 'w') as file:
+                file.write(migration.sql)
+
+            print('Changes written to ./migrations/pending.sql.')
 
 
 if __name__ == '__main__':
