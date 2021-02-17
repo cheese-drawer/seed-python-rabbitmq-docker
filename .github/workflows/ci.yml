@@ -29,9 +29,8 @@ jobs:
         pip install -r requirements.txt
     - name: Typecheck
       run: |
-        MYPYPATH=app,app/stubs
+        MYPYPATH=$PWD/app,$PWD/app/stubs
         echo $MYPYPATH
-        echo $PYTHONPATH
         ./scripts/typecheck
     - name: Lint
       run: ./scripts/lint
