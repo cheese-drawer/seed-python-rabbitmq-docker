@@ -28,10 +28,7 @@ jobs:
         cd ../integration_tests
         pip install -r requirements.txt
     - name: Typecheck
-      run: |
-        MYPYPATH=$PWD/app,$PWD/app/stubs
-        echo $MYPYPATH
-        ./scripts/typecheck
+      run: ./scripts/typecheck
     - name: Lint
       run: ./scripts/lint
     - name: Test
