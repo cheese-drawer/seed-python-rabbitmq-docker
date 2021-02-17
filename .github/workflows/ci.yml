@@ -22,9 +22,12 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: |
+        ls -la
         cd app
         python -m pip install --upgrade pip
         pip install -r requirements/dev.txt -r requirements/prod.txt
+        ls -la
+        ls -la ..
         cd ../integration-tests
         pip install -r requirements.txt
     - name: Typecheck
