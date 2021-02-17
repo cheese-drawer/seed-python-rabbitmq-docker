@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # SET PWD TO DIRNAME OF THIS SCRIPT
 # this script should always be located next to
