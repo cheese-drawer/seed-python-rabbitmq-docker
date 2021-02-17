@@ -29,7 +29,7 @@ jobs:
         pip install -r requirements.txt
     - name: Typecheck
       run: |
-        export MYPYPATH=$PWD/stubs
+        export PYTHONPATH=$PWD
         ./scripts/typecheck
     - name: Lint
       run: ./scripts/lint
