@@ -179,7 +179,7 @@ async def will_error(data: str) -> str:
 
 
 @response_and_request.route('foo')
-async def foo(data: Dict[str, Any]) -> Dict[str, Any]:
+async def dictionary(data: Dict[str, Any]) -> Dict[str, Any]:
     """Alternative example that works with a Dict instead of a string."""
     return {
         **data,

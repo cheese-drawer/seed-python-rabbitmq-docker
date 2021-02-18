@@ -68,29 +68,29 @@ class TestRouteWillError:
         assert errtype == 'Exception'
 
 
-class TestRouteFoo:
-    """Tests for API endpoint `foo`"""
+class TestRouteDictionary:
+    """Tests for API endpoint `dictionary`"""
 
     @staticmethod
     def test_response_should_include_original_dicts_attributes(
             client: Client
     ) -> None:
         message = {
-            'foo': 'bar'
+            'dictionary': 'bar'
         }
-        response = client.call('foo', message)
+        response = client.call('dictionary', message)
 
         print(response)
 
-        assert 'foo' in response['data']
+        assert 'dictionary' in response['data']
 
     @staticmethod
     def test_response_should_include_new_bar_attribute_with_value_baz(
             client: Client) -> None:
         message = {
-            'foo': 'bar'
+            'dictionary': 'bar'
         }
-        response = client.call('foo', message)
+        response = client.call('dictionary', message)
 
         print(response)
 
