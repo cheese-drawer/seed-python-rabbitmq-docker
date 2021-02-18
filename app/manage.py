@@ -11,7 +11,7 @@ import os
 import random
 import string
 import sys
-from typing import Any, Tuple, Generator
+from typing import Any, Generator, List, Tuple
 
 from migra import Migration  # type: ignore
 from psycopg2 import connect  # type: ignore
@@ -149,7 +149,7 @@ def _temp_db(host: str, user: str, password: str) -> Generator[str, Any, Any]:
     connection.close()
 
 
-def sync() -> None:
+def sync(args: List[str]) -> None:
     """
     Compare live database to application schema & apply changes to database.
 
@@ -157,6 +157,12 @@ def sync() -> None:
     `DB_[USER|PASS|HOST|NAME]` environment variables & compares to application
     schema defined at `./src/models/**/*.sql`.
     """
+    # define if prompts are needed or not
+    no_prompt = False
+
+    if 'no_prompt' in args:
+        no_prompt = True
+
     # create temp database for app schema
     with _temp_db(
             host=DB_HOST,
@@ -184,18 +190,23 @@ def sync() -> None:
                 print('\nTHE FOLLOWING CHANGES ARE PENDING:', end='\n\n')
                 print(migration.sql)
 
-                if _prompt('Apply these changes?'):
+                if no_prompt:
                     print('Applying...')
                     migration.apply()
                     print('Changes applied.')
                 else:
-                    print('Not applying.')
+                    if _prompt('Apply these changes?'):
+                        print('Applying...')
+                        migration.apply()
+                        print('Changes applied.')
+                    else:
+                        print('Not applying.')
 
             else:
                 print('Already synced.')
 
 
-def pending() -> None:
+def pending(_: List[str]) -> None:
     """
     Compare a production schema to application schema & save difference.
 
@@ -250,7 +261,12 @@ if __name__ == '__main__':
     }
 
     try:
-        tasks[sys.argv[1]]()
+        ARGS: List[str] = []
+
+        if sys.argv[2]:
+            ARGS = sys.argv[2:]
+
+        tasks[sys.argv[1]](ARGS)
     except KeyError:
         print('No such task')
     except IndexError:

@@ -77,7 +77,7 @@ jobs:
       run: |
         docker-compose -f dev.docker-compose.yml up -d
         cd app
-        python manage.py sync
+        python manage.py sync no_prompt
         cd ..
         ./scripts/test
         docker-compose -f dev.docker-compose.yml down
