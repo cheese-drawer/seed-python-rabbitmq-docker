@@ -53,7 +53,30 @@ jobs:
     - name: Lint
       run: ./scripts/lint
 
-  test:
+  unit_test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        ls -la
+        cd app
+        python -m pip install --upgrade pip
+        pip install -r requirements/dev.txt -r requirements/prod.txt
+        ls -la
+        ls -la ..
+        cd ../integration_tests
+        pip install -r requirements.txt
+    - name: Test
+      run: ./scripts/test unit
+
+  integration_test:
 
     runs-on: ubuntu-latest
 
@@ -79,5 +102,5 @@ jobs:
         cd app
         python manage.py sync no_prompt
         cd ..
-        ./scripts/test
+        ./scripts/test e2e
         docker-compose -f dev.docker-compose.yml down
