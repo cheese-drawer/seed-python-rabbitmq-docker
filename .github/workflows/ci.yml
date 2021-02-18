@@ -19,14 +19,9 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: |
-        ls -la
         cd app
         python -m pip install --upgrade pip
         pip install -r requirements/dev.txt -r requirements/prod.txt
-        ls -la
-        ls -la ..
-        cd ../integration_tests
-        pip install -r requirements.txt
     - name: Typecheck
       run: ./scripts/typecheck
 
@@ -42,14 +37,9 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: |
-        ls -la
         cd app
         python -m pip install --upgrade pip
         pip install -r requirements/dev.txt -r requirements/prod.txt
-        ls -la
-        ls -la ..
-        cd ../integration_tests
-        pip install -r requirements.txt
     - name: Lint
       run: ./scripts/lint
 
@@ -65,14 +55,9 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: |
-        ls -la
         cd app
         python -m pip install --upgrade pip
         pip install -r requirements/dev.txt -r requirements/prod.txt
-        ls -la
-        ls -la ..
-        cd ../integration_tests
-        pip install -r requirements.txt
     - name: Test
       run: ./scripts/test unit
 
@@ -88,12 +73,9 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: |
-        ls -la
         cd app
         python -m pip install --upgrade pip
         pip install -r requirements/dev.txt -r requirements/prod.txt
-        ls -la
-        ls -la ..
         cd ../integration_tests
         pip install -r requirements.txt
     - name: Test
