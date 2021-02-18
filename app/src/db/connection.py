@@ -3,7 +3,9 @@
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import Optional, Tuple
+from typing import Optional
+
+from psycopg2 import OperationalError  # type: ignore
 
 # no stubs available, starting out by just determining correct return
 # types & annotating in my wrappers here
@@ -47,7 +49,8 @@ async def _try_connect(
     while connection is None:
         try:
             connection = await aiopg.connect(dsn)
-        except Exception as err:
+        except OperationalError as err:
+            print(type(err))
             if retries > 12:
                 raise ConnectionError(
                     'Max number of connection attempts has been reached (12)'

@@ -1,3 +1,5 @@
+"""Define a simple Model data type."""
+
 from typing import List
 
 from db.model import ModelData
