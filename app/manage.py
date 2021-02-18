@@ -11,10 +11,11 @@ import os
 import random
 import string
 import sys
-from typing import Any, Generator, List, Tuple
+import time
+from typing import Any, Optional, Generator, List, Tuple
 
 from migra import Migration  # type: ignore
-from psycopg2 import connect  # type: ignore
+from psycopg2 import connect, OperationalError  # type: ignore
 from psycopg2 import sql
 from psycopg2.sql import Composed
 from sqlbag import (  # type: ignore
@@ -32,6 +33,38 @@ DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_NAME = os.getenv('DB_NAME', 'dev')
 
 DB_URL = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}'
+
+
+def _try_connect(dsn: str, retries: int = 1) -> Any:
+    # PENDS python 3.9 support in pylint
+    # pylint: disable=unsubscriptable-object
+    connection: Optional[Any] = None
+
+    print(f'Attempting to connect to database at {dsn}')
+
+    while connection is None:
+        try:
+            connection = connect(dsn)
+        except OperationalError as err:
+            print(type(err))
+            if retries > 12:
+                raise ConnectionError(
+                    'Max number of connection attempts has been reached (12)'
+                ) from err
+
+            print(
+                f'Connection failed ({retries} time(s))'
+                'retrying again in 5 seconds...')
+
+            time.sleep(5)
+            return _try_connect(dsn, retries + 1)
+
+    return connection
+
+
+def _resiliant_connect(dsn: str) -> Any:
+    """Handle connecting to db, attempt to reconnect on failure."""
+    return _try_connect(dsn)
 
 
 def _prompt(question: str) -> bool:
@@ -99,7 +132,7 @@ def _load_pre_migration(dsn: str) -> None:
 
     Uses sql schema file saved at migrations/production.dump.sql
     """
-    connection = connect(dsn)
+    connection = _resiliant_connect(dsn)
     connection.set_session(autocommit=True)
 
     with connection.cursor() as cursor:
@@ -137,7 +170,8 @@ def _get_schema_diff(
 @contextmanager
 def _temp_db(host: str, user: str, password: str) -> Generator[str, Any, Any]:
     """Create, yield, & remove a temporary database as context."""
-    connection = connect(f'postgres://{user}:{password}@{host}/{DB_NAME}')
+    connection = _resiliant_connect(
+        f'postgres://{user}:{password}@{host}/{DB_NAME}')
     connection.set_session(autocommit=True)
     name = _temp_name()
 
