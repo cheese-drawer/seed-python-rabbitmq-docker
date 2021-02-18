@@ -20,6 +20,7 @@ def client(
     connection_and_channel: Tuple[Connection, Channel]
 ) -> Client:
     """Setup an RPC client from test helper module."""
+    print('setting up client...')
     return Client(*connection_and_channel)
 
 
@@ -28,6 +29,8 @@ class TestRouteTest:
 
     @staticmethod
     def test_response_should_be_successful(client: Client) -> None:
+        print('running test_response_should_be_successful')
+
         successful = client.call('test', 'message')['success']
 
         assert successful
@@ -36,6 +39,8 @@ class TestRouteTest:
     def test_response_appends_that_took_forever_to_message(
             client: Client
     ) -> None:
+        print('running test_response_appends_that_took_forever_to_message')
+
         data = client.call('test', 'message')['data']
 
         assert data == 'message that took forever'
