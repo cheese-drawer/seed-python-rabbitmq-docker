@@ -53,7 +53,7 @@ function e2e {
     echo ""
 
     # run unit tests & save exit code
-    pytest "$@"
+    pytest -vv "$@"
     # save exit code from tests
     e2e_result=$?
 
