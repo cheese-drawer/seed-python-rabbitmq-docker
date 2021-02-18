@@ -7,7 +7,7 @@ on:
     branches: [ master, async ]
 
 jobs:
-  build:
+  typecheck:
 
     runs-on: ubuntu-latest
 
@@ -29,8 +29,50 @@ jobs:
         pip install -r requirements.txt
     - name: Typecheck
       run: ./scripts/typecheck
+
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        ls -la
+        cd app
+        python -m pip install --upgrade pip
+        pip install -r requirements/dev.txt -r requirements/prod.txt
+        ls -la
+        ls -la ..
+        cd ../integration_tests
+        pip install -r requirements.txt
     - name: Lint
       run: ./scripts/lint
+
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        ls -la
+        cd app
+        python -m pip install --upgrade pip
+        pip install -r requirements/dev.txt -r requirements/prod.txt
+        ls -la
+        ls -la ..
+        cd ../integration_tests
+        pip install -r requirements.txt
     - name: Test
       run: |
         docker-compose -f dev.docker-compose.yml up -d
