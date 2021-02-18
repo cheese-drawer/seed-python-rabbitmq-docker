@@ -28,9 +28,13 @@ class Client:
         self.connection = connection
         self.channel = channel
 
+        print('declaring response queue')
+
         result = self.channel.queue_declare(
             queue='', exclusive=True, auto_delete=True)
         self.callback_queue = result.method.queue
+
+        print('listening on response queue')
 
         self.channel.basic_consume(
             queue=self.callback_queue,
@@ -40,7 +44,7 @@ class Client:
     def _on_response(self, _, __, props, body):
         if self.correlation_id == props.correlation_id:
             self.response = json.loads(gzip.decompress(body).decode('UTF8'))
-            # print(f'Response received {self.response}')
+            print(f'Response received {self.response}')
 
     def call(self, target_queue: str, message: str) -> Any:
         """Send message as RPC Request to given queue & return Response."""
@@ -54,7 +58,7 @@ class Client:
             'data': message,
         }
 
-        # print(f'Sending message {message}')
+        print(f'Sending message {message}')
 
         self.channel.basic_publish(
             exchange='',
@@ -62,7 +66,7 @@ class Client:
             properties=message_props,
             body=gzip.compress(json.dumps(message_as_dict).encode('UTF8')))
 
-        # print('Message sent, waiting for response...')
+        print('Message sent, waiting for response...')
 
         while self.response is None:
             self.connection.process_data_events(time_limit=120)

@@ -30,7 +30,7 @@ class TestRouteQueueTest:
     """Tests for API endpoint `queue-test`."""
 
     @staticmethod
-    def test_nothing_is_returned(client):
+    def test_nothing_is_returned(client: Client) -> None:
         """This example is a pretty useless test, instead it should probably
         eventually be paired with a Request via the R&R API to check if the
         side effects from pushing a message on the StS API had the desired
@@ -43,6 +43,6 @@ class TestRouteQueueTest:
         3rd: Make R&R again, assert Response changed as expected
         """
 
-        result = client.publish('queue-test', {'a': 1})
+        result = client.publish('queue-test', {'a': 1})  # type: ignore
 
         assert result is None

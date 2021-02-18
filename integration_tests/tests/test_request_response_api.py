@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=no-method-argument
 # pylint: disable=missing-function-docstring
+# pylint: disable=too-few-public-methods
 
 from typing import Tuple
 
