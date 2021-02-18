@@ -62,7 +62,7 @@ def _try_connect(dsn: str, retries: int = 1) -> Any:
     return connection
 
 
-def _resiliant_connect(dsn: str) -> Any:
+def _resilient_connect(dsn: str) -> Any:
     """Handle connecting to db, attempt to reconnect on failure."""
     return _try_connect(dsn)
 
@@ -132,7 +132,7 @@ def _load_pre_migration(dsn: str) -> None:
 
     Uses sql schema file saved at migrations/production.dump.sql
     """
-    connection = _resiliant_connect(dsn)
+    connection = _resilient_connect(dsn)
     connection.set_session(autocommit=True)
 
     with connection.cursor() as cursor:
@@ -170,7 +170,7 @@ def _get_schema_diff(
 @contextmanager
 def _temp_db(host: str, user: str, password: str) -> Generator[str, Any, Any]:
     """Create, yield, & remove a temporary database as context."""
-    connection = _resiliant_connect(
+    connection = _resilient_connect(
         f'postgres://{user}:{password}@{host}/{DB_NAME}')
     connection.set_session(autocommit=True)
     name = _temp_name()
