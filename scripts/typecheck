@@ -15,6 +15,9 @@ function check {
     cd ../app
     # enable app virtual environment
     eval "$(direnv export bash)"
+    if [ !$PYTHONPATH ]; then
+        export PYTHONPATH=$PWD
+    fi
     echo ""
 
     echo ""
@@ -25,7 +28,7 @@ function check {
     # FIXME: somehow mypy isnt picking up that MYPYPATH is set, but this
     # works when typed manually in bash shell
     # export MYPYPATH=$PWD,$PWD/stubs
-    # echo "PYTHONPATH: $PYTHONPATH"
+    echo "PYTHONPATH: $PYTHONPATH"
     # echo "MYPYPATH: $MYPYPATH"
 
     echo "Checking ./src..."
