@@ -19,6 +19,9 @@ function unit {
     cd ../app
     # enable app virtual environment
     eval "$(direnv export bash)"
+    if [ !$PYTHONPATH ]; then
+        export PYTHONPATH=$PWD
+    fi
     echo ""
 
     echo ""
@@ -44,6 +47,9 @@ function e2e {
 
     # enable app virtual environment
     eval "$(direnv export bash)"
+    if [ !$PYTHONPATH ]; then
+        export PYTHONPATH=$PWD
+    fi
     echo ""
 
     # run unit tests & save exit code
@@ -76,6 +82,9 @@ if [ $# -eq 0 ]; then
     elif [[ $unit_result == 0 && $e2e_result != 0 ]]; then
         echo "Errors found in integration tests. See output above."
         exit $e2e_result
+    else
+        echo "This shouldn't happen."
+        exit 1
     fi
 
 elif [ $1 == 'unit' ]; then
