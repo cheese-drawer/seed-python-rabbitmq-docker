@@ -4,9 +4,10 @@ from time import sleep
 from typing import Tuple, Optional
 
 import pika
+from pika.adapters.blocking_connection import BlockingChannel
 
 Connection = pika.BlockingConnection
-Channel = pika.BlockingConnection
+Channel = BlockingChannel
 ConnectionParameters = pika.ConnectionParameters
 
 

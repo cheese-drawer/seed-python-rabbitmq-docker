@@ -6,9 +6,10 @@ import uuid
 from typing import Any
 
 import pika
+from pika.adapters.blocking_connection import BlockingChannel
 
 Connection = pika.BlockingConnection
-Channel = pika.BlockingConnection
+Channel = BlockingChannel
 
 
 # pylint: disable=too-few-public-methods
@@ -41,7 +42,7 @@ class Client:
             on_message_callback=self._on_response,
             auto_ack=True)
 
-    def _on_response(self, _, __, props, body):
+    def _on_response(self, _: Any, __: Any, props: Any, body: bytes) -> None:
         if self.correlation_id == props.correlation_id:
             self.response = json.loads(gzip.decompress(body).decode('UTF8'))
             print(f'Response received {self.response}')
@@ -71,4 +72,8 @@ class Client:
         while self.response is None:
             self.connection.process_data_events(time_limit=120)
 
-        return self.response
+        # NOTE: mypy incorrectly thinks this statement is unreachable
+        # what it doesn't know is that connection.process_data_events()
+        # will call _on_response, setting self.response when a response
+        # is received on the callback queue defined in __init__
+        return self.response  # type: ignore
