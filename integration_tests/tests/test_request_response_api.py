@@ -4,9 +4,9 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=too-few-public-methods
 
-from typing import Any, Generator, Tuple
+from typing import Any, Callable, Tuple, Dict
 
-import pytest
+# import pytest
 
 from helpers.connection import connect, Connection, Channel
 from helpers.rpc_client import Client
@@ -29,39 +29,55 @@ def connection_and_channel(
     return connection, channel
 
 
-@pytest.fixture
-def client(
-) -> Generator[Client, Any, Any]:
-    """Setup an RPC client from test helper module."""
-    print('setting up client...')
-
+def setup() -> Tuple[Callable[[], None], Client]:
+    """Setup test."""
     connection, channel = connection_and_channel()
+    client = Client(connection, channel)
 
-    yield Client(connection, channel)
+    def teardown() -> None:
+        connection.close()
 
-    connection.close()
+    return teardown, client
+
+
+# @pytest.fixture
+# def client(
+# ) -> Generator[Client, Any, Any]:
+#     """Setup an RPC client from test helper module."""
+#     print('setting up client...')
+#
+#     connection, channel = connection_and_channel()
+#
+#     yield Client(connection, channel)
+#
+#     connection.close()
 
 
 class TestRouteTest:
     """Tests for API endpoint `test`."""
 
     @staticmethod
-    def test_response_should_be_successful(client: Client) -> None:
+    def test_response_should_be_successful() -> None:
         print('running test_response_should_be_successful')
+        teardown, client = setup()
 
         successful = client.call('test', 'message')['success']
 
         assert successful
 
+        teardown()
+
     @staticmethod
     def test_response_appends_that_took_forever_to_message(
-            client: Client
     ) -> None:
         print('running test_response_appends_that_took_forever_to_message')
+        teardown, client = setup()
 
         data = client.call('test', 'message')['data']
 
         assert data == 'message that took forever'
+
+        teardown()
 
 
 # class TestRouteWillError:
