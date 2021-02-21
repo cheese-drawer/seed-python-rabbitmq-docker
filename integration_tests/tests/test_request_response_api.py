@@ -1,29 +1,29 @@
-"""Tests for endpoints on the Request & Response API."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=no-method-argument
-# pylint: disable=missing-function-docstring
-# pylint: disable=too-few-public-methods
-
-from typing import Tuple
-
-import pytest
-
-from helpers.rpc_client import Client, Connection, Channel
-
-
-# create connection objects and make available for the module scope
-connection_and_channel = pytest.mark.usefixtures('connection_and_channel')
-
-
-@pytest.fixture
-def client(
-    connection_and_channel: Tuple[Connection, Channel]
-) -> Client:
-    """Setup an RPC client from test helper module."""
-    print('setting up client...')
-    return Client(*connection_and_channel)
-
-
+# """Tests for endpoints on the Request & Response API."""
+# # pylint: disable=redefined-outer-name
+# # pylint: disable=no-method-argument
+# # pylint: disable=missing-function-docstring
+# # pylint: disable=too-few-public-methods
+#
+# from typing import Tuple
+#
+# import pytest
+#
+# from helpers.rpc_client import Client, Connection, Channel
+#
+#
+# # create connection objects and make available for the module scope
+# connection_and_channel = pytest.mark.usefixtures('connection_and_channel')
+#
+#
+# @pytest.fixture
+# def client(
+#     connection_and_channel: Tuple[Connection, Channel]
+# ) -> Client:
+#     """Setup an RPC client from test helper module."""
+#     print('setting up client...')
+#     return Client(*connection_and_channel)
+#
+#
 # class TestRouteTest:
 #     """Tests for API endpoint `test`."""
 #

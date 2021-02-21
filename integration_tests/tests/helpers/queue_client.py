@@ -8,9 +8,10 @@ import json
 from typing import Any
 
 import pika
+from pika.adapters.blocking_connection import BlockingChannel
 
 Connection = pika.BlockingConnection
-Channel = pika.BlockingConnection
+Channel = BlockingChannel
 
 
 # pylint: disable=too-few-public-methods
