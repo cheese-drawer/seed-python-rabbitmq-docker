@@ -4,44 +4,48 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=too-few-public-methods
 
-from typing import Tuple
+from typing import Any, Generator, Tuple
 
 import pytest
 
-from helpers.connection import Connection, Channel
-from helpers.queue_client import Client as QueueClient
-from helpers.rpc_client import Client as RPCClient
+from helpers.connection import connect, Connection, Channel
+from helpers.queue_client import Client
 
 
 # create connection objects and make available for the module scope
-connection_and_channel = pytest.mark.usefixtures('connection_and_channel')
+# connection_and_channel = pytest.mark.usefixtures('connection_and_channel')
+
+
+def connection_and_channel(
+) -> Tuple[Connection, Channel]:
+    """Set up & tears down a connection to the test broker."""
+    connection, channel = connect(
+        host='localhost',
+        port=8672,
+        user='test',
+        password='pass'
+    )
+
+    return connection, channel
 
 
 @pytest.fixture
 def queue_client(
-        connection_and_channel: Tuple[Connection, Channel]
-) -> QueueClient:
+) -> Generator[Client, Any, Any]:
     """Setup a Worker client from test helper module."""
 
-    channel = connection_and_channel[1]
+    connection, channel = connection_and_channel()
 
-    return QueueClient(channel)
+    yield Client(channel)
 
-
-@pytest.fixture
-def rpc_client(
-    connection_and_channel: Tuple[Connection, Channel]
-) -> RPCClient:
-    """Setup an RPC client from test helper module."""
-    print('setting up client...')
-    return RPCClient(*connection_and_channel)
+    connection.close()
 
 
 class TestRouteQueueTest:
     """Tests for API endpoint `queue-test`."""
 
     @staticmethod
-    def test_nothing_is_returned(queue_client: QueueClient) -> None:
+    def test_nothing_is_returned(queue_client: Client) -> None:
         """This example is a pretty useless test, instead it should probably
         eventually be paired with a Request via the R&R API to check if the
         side effects from pushing a message on the StS API had the desired
@@ -57,25 +61,3 @@ class TestRouteQueueTest:
         result = queue_client.publish('queue-test', {'a': 1})  # type: ignore
 
         assert result is None
-
-
-class TestRouteTest:
-    """Tests for API endpoint `test`."""
-
-    @staticmethod
-    def test_response_should_be_successful(rpc_client: RPCClient) -> None:
-        print('running test_response_should_be_successful')
-
-        successful = rpc_client.call('test', 'message')['success']
-
-        assert successful
-
-    @staticmethod
-    def test_response_appends_that_took_forever_to_message(
-            rpc_client: RPCClient
-    ) -> None:
-        print('running test_response_appends_that_took_forever_to_message')
-
-        data = rpc_client.call('test', 'message')['data']
-
-        assert data == 'message that took forever'
