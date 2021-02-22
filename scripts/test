@@ -30,6 +30,8 @@ function unit {
 
     # run unit tests & save exit code
     pytest "$@"
+    # cd tests
+    # python -m unittest -b $@
     # save exit code from tests
     unit_result=$?
 
@@ -42,7 +44,7 @@ function e2e {
     echo ""
     echo "Starting integration tests..."
     echo ""
-    # go to app dir
+    # go to test app dir
     cd ../integration_tests
 
     # enable app virtual environment
@@ -52,8 +54,9 @@ function e2e {
     fi
     echo ""
 
-    # run unit tests & save exit code
-    pytest -s "$@"
+    # run integration tests & save exit code
+    cd tests
+    python -m unittest -b $@
     # save exit code from tests
     e2e_result=$?
 
@@ -83,8 +86,7 @@ if [ $# -eq 0 ]; then
         echo "Errors found in integration tests. See output above."
         exit $e2e_result
     else
-        echo "This shouldn't happen."
-        exit 1
+        exit 0
     fi
 
 elif [ $1 == 'unit' ]; then

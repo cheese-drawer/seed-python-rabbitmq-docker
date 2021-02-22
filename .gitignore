@@ -18,5 +18,6 @@ TODO
 
 # dev helper scripts
 app/scripts
+integration_tests/scripts
 .vscode/
 migrations/
