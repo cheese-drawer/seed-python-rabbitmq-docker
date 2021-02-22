@@ -24,7 +24,7 @@ class TestDoAQuickThing(TestCase):
 
 
 class TestDoALongThing(TestCase):
-    """Tests for method do_a_quick_thing."""
+    """Tests for method do_a_long_thing."""
 
     @async_test
     async def test_returns_string_that_took_forever(self) -> None:
