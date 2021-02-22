@@ -1,9 +1,8 @@
 """Tests for endpoints on the Request & Response API."""
 # pylint: disable=missing-function-docstring
 
-from typing import Any, Callable, Tuple, Dict
+from typing import Any, Dict
 
-# import pytest
 import unittest
 from unittest import TestCase
 

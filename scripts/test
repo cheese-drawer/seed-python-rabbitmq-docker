@@ -29,9 +29,8 @@ function unit {
     echo ""
 
     # run unit tests & save exit code
-    pytest "$@"
-    # cd tests
-    # python -m unittest -b $@
+    cd tests
+    python -m unittest -b $@
     # save exit code from tests
     unit_result=$?
 
