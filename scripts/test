@@ -54,7 +54,6 @@ function e2e {
     echo ""
 
     # run integration tests & save exit code
-    # pytest -s "$@"
     cd tests
     python -m unittest -b $@
     # save exit code from tests
