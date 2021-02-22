@@ -3,6 +3,7 @@
 import gzip
 import json
 import uuid
+import time
 from typing import Any
 
 import pika
@@ -10,6 +11,10 @@ from pika.adapters.blocking_connection import BlockingChannel
 
 Connection = pika.BlockingConnection
 Channel = BlockingChannel
+
+
+class ResponseTimeout(Exception):
+    pass
 
 
 # pylint: disable=too-few-public-methods
@@ -47,7 +52,11 @@ class Client:
             self.response = json.loads(gzip.decompress(body).decode('UTF8'))
             print(f'Response received {self.response}')
 
-    def call(self, target_queue: str, message: str) -> Any:
+    def call(
+            self,
+            target_queue: str,
+            message: Any,
+            timeout: int = 5000) -> Any:
         """Send message as RPC Request to given queue & return Response."""
         self.response = None
         self.correlation_id = str(uuid.uuid4())
@@ -66,11 +75,15 @@ class Client:
             routing_key=target_queue,
             properties=message_props,
             body=gzip.compress(json.dumps(message_as_dict).encode('UTF8')))
+        start_time = time.time()
 
         print('Message sent, waiting for response...')
 
         while self.response is None:
-            self.connection.process_data_events(time_limit=120)
+            if (start_time + timeout) < time.time():
+                raise ResponseTimeout()
+
+            self.connection.process_data_events(time_limit=timeout)
 
         # NOTE: mypy incorrectly thinks this statement is unreachable
         # what it doesn't know is that connection.process_data_events()
