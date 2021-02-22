@@ -57,7 +57,7 @@ function e2e {
     # run integration tests & save exit code
     # pytest -s "$@"
     cd tests
-    python -m unittest -b $@
+    python -m unittest $@
     # save exit code from tests
     e2e_result=$?
 
