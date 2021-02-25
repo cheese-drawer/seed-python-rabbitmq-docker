@@ -294,11 +294,15 @@ if __name__ == '__main__':
         'pending': pending,
     }
 
+    print(f'task: { sys.argv[1] }')
+
     try:
         ARGS: List[str] = []
 
-        if sys.argv[2]:
+        try:
             ARGS = sys.argv[2:]
+        except IndexError:
+            ARGS = []
 
         tasks[sys.argv[1]](ARGS)
     except KeyError:
