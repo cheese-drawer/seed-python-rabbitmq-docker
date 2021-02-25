@@ -14,7 +14,7 @@ class Composable:
     # pylint: disable=unsubscriptable-object
     def __init__(
         self,
-        wrapped: Union[str, List[Union[str, Composable]]]
+        wrapped: Union[str, object, List[Union[str, Composable]]]
     ) -> None: ...
     # pylint: disable=unsubscriptable-object
     def as_string(self, context: Any) -> Optional[str]: ...
