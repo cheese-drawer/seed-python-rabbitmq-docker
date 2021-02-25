@@ -4,7 +4,7 @@ from typing import Any, List, Dict
 
 from psycopg2 import sql
 
-from db.model import ModelData, Model, Read, Client
+from db_wrapper.model import ModelData, Model, Read, Client
 
 
 class ExampleItemData(ModelData):

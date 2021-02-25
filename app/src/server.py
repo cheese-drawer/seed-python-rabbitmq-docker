@@ -33,9 +33,9 @@ from typing import Any, List, Dict
 
 # third party imports
 import amqp_worker as worker
+import db_wrapper as db
 
 # internal dependencies
-import db
 from start_server import Runner
 
 # application logic

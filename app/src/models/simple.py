@@ -2,7 +2,7 @@
 
 from typing import List
 
-from db.model import ModelData
+from db_wrapper.model import ModelData
 
 
 class SimpleData(ModelData):
