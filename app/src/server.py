@@ -29,7 +29,7 @@ asynchronous event loop, handled here by the `register_database`,
 # standard library imports
 import logging
 import os
-from typing import Any, List, Dict
+from typing import Any, List, Dict, TypedDict
 
 # third party imports
 import amqp_worker as worker
@@ -130,7 +130,7 @@ service_to_service = worker.QueueWorker(broker_connection_params)
 # If you don't need any queries beyond the built-in ones, you can simply
 # build a model from only a ModelData definition, database Client object, &
 # table name
-simple_model = db.Model[SimpleData](database, 'simple_table')
+simple_model = db.Model[SimpleData](database, 'simple')
 
 # Otherwise, it's best to extend the model object with additional queries
 # in another file, then initialize it here
@@ -190,13 +190,41 @@ async def dictionary(data: Dict[str, Any]) -> Dict[str, Any]:
 @response_and_request.route('db')
 async def db_route(_: Any) -> List[Any]:
     """Simplified example of a handler that directly queries the database."""
-    return await database.execute_and_return(
-        'SELECT * FROM information_schema.tables')
+    # PENDS python 3.9 support in pylint
+    # pylint: disable=inherit-non-class
+    # pylint: disable=too-few-public-methods
+    # NOTE: db_wrapper uses psycopg2's RealDictCursor under the hood, so query
+    # results will be returned in the form of a list of dictionaries, one for
+    # each result. In this case, the result will be a list of dictionaries,
+    # each with only one field, `table_name`, & a value type of `str`.
+    class TableName(TypedDict):
+        """DB query result shape for querying table names."""
+
+        table_name: str
+
+    tables_dicts: List[TableName] = await database.execute_and_return(
+        "SELECT table_name "
+        "FROM information_schema.tables "
+        "WHERE table_schema = 'public';")
+
+    tables: List[str] = [table['table_name'] for table in tables_dicts]
+
+    return tables
 
 
 @response_and_request.route('example-items')
 async def model_route(query: str) -> List[ExampleItemData]:
     """Implement example handler that uses Model to interact with database."""
+    # psycopg2's sql composition module (used to query built in
+    # ExampleItemModel) interpolates a None value as an empty string. This
+    # means a missing query string in this route will result in a query
+    # matching no records, & send a response of an empty array, when instead
+    # the user should be alerted that they forgot a query string in their
+    # message.
+    if query is None:
+        raise Exception(
+            'No Message: no message body was sent when one is required.')
+
     return await example_model.read.all_by_string(query)
 
 

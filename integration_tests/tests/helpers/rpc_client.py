@@ -4,7 +4,7 @@ import gzip
 import json
 import uuid
 import time
-from typing import Any
+from typing import Any, Optional
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
@@ -52,10 +52,12 @@ class Client:
             self.response = json.loads(gzip.decompress(body).decode('UTF8'))
             print(f'Response received {self.response}')
 
+    # PENDS python 3.9 support in pylint
+    # pylint: disable=unsubscriptable-object
     def call(
             self,
             target_queue: str,
-            message: Any,
+            message: Optional[Any] = None,
             timeout: int = 5000) -> Any:
         """Send message as RPC Request to given queue & return Response."""
         self.response = None
