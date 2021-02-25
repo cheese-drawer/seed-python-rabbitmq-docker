@@ -39,7 +39,6 @@ fi
 # otherwise, search for exact match to script name
 for file in ./*; do
     file_name=${file#"./"}
-    echo $file_name
 
     if [[ $file_name = $1 ]]; then
         run $file ${@:2}

@@ -33,7 +33,7 @@ function check {
 
     echo "Checking ./src..."
     echo ""
-    mypy -v src
+    mypy src
     mypy_src_result=$?
 
     if [ $mypy_src_result != 0 ]; then
