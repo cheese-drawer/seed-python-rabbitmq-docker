@@ -1,51 +1,45 @@
 """Tests for endpoints on the Request & Response API."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=no-method-argument
 # pylint: disable=missing-function-docstring
-# pylint: disable=too-few-public-methods
 
-from typing import Any, Generator, Tuple
+import unittest
+from unittest import TestCase
 
-import pytest
-
-from helpers.connection import connect, Connection, Channel
+from helpers.connection import connect, Connection
 from helpers.queue_client import Client
 
 
-# create connection objects and make available for the module scope
-# connection_and_channel = pytest.mark.usefixtures('connection_and_channel')
+connection: Connection
+client: Client
 
 
-def connection_and_channel(
-) -> Tuple[Connection, Channel]:
-    """Set up & tears down a connection to the test broker."""
+def setUpModule() -> None:
+    """Establish connection & create AMQP client."""
+    # pylint: disable=global-statement
+    # pylint: disable=invalid-name
+    global connection
+    global client
+
     connection, channel = connect(
         host='localhost',
         port=8672,
         user='test',
         password='pass'
     )
+    client = Client(channel)
 
-    return connection, channel
 
-
-@pytest.fixture
-def queue_client(
-) -> Generator[Client, Any, Any]:
-    """Setup a Worker client from test helper module."""
-
-    connection, channel = connection_and_channel()
-
-    yield Client(channel)
-
+def tearDownModule() -> None:
+    """Close connection."""
+    # pylint: disable=global-statement
+    # pylint: disable=invalid-name
+    global connection
     connection.close()
 
 
-class TestRouteQueueTest:
+class TestRouteQueueTest(TestCase):
     """Tests for API endpoint `queue-test`."""
 
-    @staticmethod
-    def test_nothing_is_returned(queue_client: Client) -> None:
+    def test_nothing_is_returned(self) -> None:
         """This example is a pretty useless test, instead it should probably
         eventually be paired with a Request via the R&R API to check if the
         side effects from pushing a message on the StS API had the desired
@@ -57,7 +51,10 @@ class TestRouteQueueTest:
         2nd: Push message via StS API
         3rd: Make R&R again, assert Response changed as expected
         """
+        result = client.publish('queue-test', {'a': 1})  # type: ignore
 
-        result = queue_client.publish('queue-test', {'a': 1})  # type: ignore
+        self.assertIsNone(result)
 
-        assert result is None
+
+if __name__ == '__main__':
+    unittest.main()

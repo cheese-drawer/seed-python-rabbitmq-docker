@@ -178,7 +178,7 @@ async def will_error(data: str) -> str:
     raise Exception(f'Just an exception: {an_int}, {data}')
 
 
-@response_and_request.route('foo')
+@response_and_request.route('dictionary')
 async def dictionary(data: Dict[str, Any]) -> Dict[str, Any]:
     """Alternative example that works with a Dict instead of a string."""
     return {

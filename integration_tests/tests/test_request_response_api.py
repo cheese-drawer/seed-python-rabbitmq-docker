@@ -1,137 +1,120 @@
 """Tests for endpoints on the Request & Response API."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=no-method-argument
 # pylint: disable=missing-function-docstring
-# pylint: disable=too-few-public-methods
 
-from typing import Any, Callable, Tuple, Dict
+from typing import Any, Dict
 
-# import pytest
+import unittest
+from unittest import TestCase
 
-from helpers.connection import connect, Connection, Channel
+from helpers.connection import connect, Connection
 from helpers.rpc_client import Client
 
 
-# create connection objects and make available for the module scope
-# connection_and_channel = pytest.mark.usefixtures('connection_and_channel')
+connection: Connection
+client: Client
 
 
-def connection_and_channel(
-) -> Tuple[Connection, Channel]:
-    """Set up & tears down a connection to the test broker."""
+def setUpModule() -> None:
+    """Establish connection & create AMQP client."""
+    # pylint: disable=global-statement
+    # pylint: disable=invalid-name
+    global connection
+    global client
+
     connection, channel = connect(
         host='localhost',
         port=8672,
         user='test',
         password='pass'
     )
-
-    return connection, channel
-
-
-def setup() -> Tuple[Callable[[], None], Client]:
-    """Setup test."""
-    connection, channel = connection_and_channel()
     client = Client(connection, channel)
 
-    def teardown() -> None:
-        connection.close()
 
-    return teardown, client
-
-
-# @pytest.fixture
-# def client(
-# ) -> Generator[Client, Any, Any]:
-#     """Setup an RPC client from test helper module."""
-#     print('setting up client...')
-#
-#     connection, channel = connection_and_channel()
-#
-#     yield Client(connection, channel)
-#
-#     connection.close()
+def tearDownModule() -> None:
+    """Close connection."""
+    # pylint: disable=global-statement
+    # pylint: disable=invalid-name
+    global connection
+    connection.close()
 
 
-class TestRouteTest:
+class TestRouteTest(TestCase):
     """Tests for API endpoint `test`."""
 
-    @staticmethod
-    def test_response_should_be_successful() -> None:
-        print('running test_response_should_be_successful')
-        teardown, client = setup()
-
+    def test_response_should_be_successful(self) -> None:
         successful = client.call('test', 'message')['success']
 
-        assert successful
+        self.assertTrue(successful)
 
-        teardown()
-
-    @staticmethod
     def test_response_appends_that_took_forever_to_message(
+        self
     ) -> None:
         print('running test_response_appends_that_took_forever_to_message')
-        teardown, client = setup()
-
         data = client.call('test', 'message')['data']
 
-        assert data == 'message that took forever'
-
-        teardown()
+        self.assertEqual(data, 'message that took forever')
 
 
-# class TestRouteWillError:
-#     """Tests for API endpoint `will-error`."""
-#
-#     @staticmethod
-#     def test_response_should_not_be_successful(client: Client) -> None:
-#         successful = client.call('will-error', '')['success']
-#
-#         assert not successful
-#
-#     @staticmethod
-#     def test_response_should_include_error_information(client: Client) -> None:
-#         response = client.call('will-error', '')
-#
-#         assert 'error' in response
-#
-#     @staticmethod
-#     def test_error_data_includes_message(client: Client) -> None:
-#         message = client.call('will-error', 'message')['error']['message']
-#
-#         assert 'Just an exception' in message and 'message' in message
-#
-#     @staticmethod
-#     def test_error_data_includes_error_type(client: Client) -> None:
-#         errtype = client.call('will-error', '')['error']['type']
-#
-#         assert errtype == 'Exception'
-#
-#
-# class TestRouteDictionary:
-#     """Tests for API endpoint `dictionary`"""
-#
-#     @staticmethod
-#     def test_response_should_include_original_dicts_attributes(
-#             client: Client
-#     ) -> None:
-#         message = {
-#             'dictionary': 'bar'
-#         }
-#         response = client.call('dictionary', message)
-#
-#         print(response)
-#
-#         assert 'dictionary' in response['data']
-#
-#     @staticmethod
-#     def test_response_should_include_new_bar_attribute_with_value_baz(
-#             client: Client) -> None:
-#         message = {
-#             'dictionary': 'bar'
-#         }
-#         response = client.call('dictionary', message)
-#
-#         print(response)
-#
-#         assert response['data']['bar'] == 'baz'
+class TestRouteWillError(TestCase):
+    """Tests for API endpoint `will-error`."""
+    response: Dict[str, Any]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.response = client.call('will-error', '')
+
+    def test_response_should_not_be_successful(self) -> None:
+        successful = self.response['success']
+
+        self.assertFalse(successful)
+
+    def test_response_should_include_error_information(self) -> None:
+        self.assertIn('error', self.response)
+
+    def test_error_data_includes_message(self) -> None:
+        message = client.call('will-error', 'message')['error']['message']
+
+        for phrase in ['Just an exception', 'message']:
+            # Using `self.subTest` as context allows for more elegance when
+            # making multiple assertions in the same test. Instead of stopping
+            # test execution if an assertion fails, it records the failure &
+            # continues to make the remaining assertions.
+            with self.subTest():
+                self.assertIn(phrase, message)
+
+    def test_error_data_includes_error_type(self) -> None:
+        errtype = self.response['error']['type']
+
+        self.assertEqual(errtype, 'Exception')
+
+
+class TestRouteDictionary(TestCase):
+    """Tests for API endpoint `dictionary`"""
+
+    def test_response_should_include_original_dicts_attributes(
+        self
+    ) -> None:
+        message = {
+            'dictionary': 'foo'
+        }
+        response = client.call('dictionary', message)
+
+        print(response)
+
+        self.assertIn('dictionary', response['data'])
+
+    def test_response_should_include_new_bar_attribute_with_value_baz(
+        self
+    ) -> None:
+        message = {
+            'dictionary': 'foo'
+        }
+        response = client.call('dictionary', message)
+
+        print(response)
+
+        self.assertEqual('baz', response['data']['bar'])
+
+
+if __name__ == '__main__':
+    unittest.main()
