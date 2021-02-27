@@ -20,7 +20,7 @@ The project structure places the Docker & dev environment files at the root, wit
     |   |                       # lib to initialize & manage AMQP workers,
     |   |_ server.py            # define service APIs here
     |   |_ lib.py               # example business logic, best to define it outside the API
-    |_ tests/               # pytest tests, used for unit testing any functional layers of 
+    |_ tests/               # pytest tests, used for unit testing any functional layers of
         |                   # the business logic
         |_ lib.py               # easiest to not unit test your API as it has too many
 
@@ -39,7 +39,9 @@ Get Docker for your local machine by [going here](https://docs.docker.com/get-do
 
 ### RabbitMQ Broker
 
-The simplest way to get a Broker running on your local machine is to use the Docker Community maintained [rabbitmq](registry.hub.docker.com/_/rabbitmq) image. I prefer the alpine based version with the management console, allowing me to inspect the Broker in my browser. Install it with the following command:
+The simplest way to get a Broker running on your local machine is to use the Docker Community maintained [rabbitmq](registry.hub.docker.com/_/rabbitmq) image.
+I prefer the alpine based version with the management console, allowing me to inspect the Broker in my browser.
+Install it with the following command:
 
 ```
 docker run -d \
@@ -55,8 +57,11 @@ This command does the following:
 
 1. Runs the container in detached mode, allowing it to keep running in the background.
 2. Names your Broker container 'test-rabbitmq'
-3. Exposes the containers 5672 & 15672 ports. 5672 is necessary to allow anything on your local machine access to the broker to produce & consume messages. 15672 is necessary for you to access the management console at `localhost:15672`.
-4. Changes the default user & password from the built-in defaults of 'guest' & 'guest' to 'test' & a password of your choice. This isn't strictly necessary, but makes for slightly better security in your dev environment.
+3. Exposes the containers 5672 & 15672 ports.
+  5672 is necessary to allow anything on your local machine access to the broker to produce & consume messages.
+  15672 is necessary for you to access the management console at `localhost:15672`.
+4. Changes the default user & password from the built-in defaults of 'guest' & 'guest' to 'test' & a password of your choice.
+This isn't strictly necessary, but makes for slightly better security in your dev environment.
 
 Alternatively, you can use Docker Compose to orchestrate setting this broker container up with your service project container, allowing you to skip exposing port 5672 & define the Broker username & password w/ Docker Secrets, but that is outside the scope of this README for now.
 
@@ -92,4 +97,5 @@ Alternatively, you can use Docker Compose to manage both this service container 
 
 ## Usage
 
-With your seed project container running & a volume mapped to your working directory's `./app` directory, you can start modifying the contents of `./app` all you want. To see the effect of your changes on the container, just stop it & restart it with `docker stop {your container name}` & `docker start {your container name}`, then try sending messages to the API you've defined & inspect the service's logs with `docker logs {your container name}`.
+With your seed project container running & a volume mapped to your working directory's `./app` directory, you can start modifying the contents of `./app` all you want.
+To see the effect of your changes on the container, just stop it & restart it with `docker stop {your container name}` & `docker start {your container name}`, then try sending messages to the API you've defined & inspect the service's logs with `docker logs {your container name}`.
