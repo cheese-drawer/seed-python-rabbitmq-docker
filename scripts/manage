@@ -15,7 +15,7 @@ cd $SCRIPT_DIR
 # DEFER TO MANAGE SCRIPT
 #
 
-cd ../app
+cd ..
 # enable app virtual environment
 eval "$(direnv export bash)"
 if [ !$PYTHONPATH ]; then

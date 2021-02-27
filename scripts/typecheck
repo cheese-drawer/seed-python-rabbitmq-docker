@@ -12,7 +12,7 @@ cd $SCRIPT_DIR
 
 
 function check {
-    cd ../app
+    cd ..
     # enable app virtual environment
     eval "$(direnv export bash)"
     if [ !$PYTHONPATH ]; then

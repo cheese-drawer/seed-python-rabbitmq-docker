@@ -11,7 +11,7 @@ cd $current_dir
 # eval "$(direnv export bash)"
 
 #
-# START-UP DOCKER STACK
+# START UP DOCKER STACK
 #
 
 # Uses docker-compose to start dev stack; assumes image is built.
@@ -36,7 +36,7 @@ fi
 # loop is pushed to the background to allow for stack logs
 # to be pulled to the foreground in the next command
 while sleep 1; do
-    rg --files ../app/src | entr -d docker-compose --file ../dev.docker-compose.yml restart seed
+    rg --files ../src | entr -d docker-compose --file ../dev.docker-compose.yml restart seed
 done &
 # save while loop's PID to be able to kill it later
 WATCHER_PID=$!

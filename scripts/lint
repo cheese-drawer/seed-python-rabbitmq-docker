@@ -11,7 +11,7 @@ SCRIPT_DIR=`dirname $(realpath "$0")`
 cd $SCRIPT_DIR
 
 # go to app dir
-cd ../app
+cd ..
 
 # enable app virtual environment
 eval "$(direnv export bash)"

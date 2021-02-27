@@ -9,6 +9,13 @@
 # from here are relative
 SCRIPT_DIR=`dirname $(realpath "$0")`
 cd $SCRIPT_DIR
+cd ..
+# enable app virtual environment
+eval "$(direnv export bash)"
+if [ !$PYTHONPATH ]; then
+    export PYTHONPATH=$PWD
+fi
+echo ""
 
 
 #
@@ -16,20 +23,12 @@ cd $SCRIPT_DIR
 #
 
 function unit {
-    cd ../app
-    # enable app virtual environment
-    eval "$(direnv export bash)"
-    if [ !$PYTHONPATH ]; then
-        export PYTHONPATH=$PWD
-    fi
-    echo ""
-
     echo ""
     echo "Starting unit tests..."
     echo ""
 
     # run unit tests & save exit code
-    cd tests
+    cd tests/unit
     python -m unittest -b $@
     # save exit code from tests
     unit_result=$?
@@ -43,18 +42,9 @@ function e2e {
     echo ""
     echo "Starting integration tests..."
     echo ""
-    # go to test app dir
-    cd ../integration_tests
-
-    # enable app virtual environment
-    eval "$(direnv export bash)"
-    if [ !$PYTHONPATH ]; then
-        export PYTHONPATH=$PWD
-    fi
-    echo ""
 
     # run integration tests & save exit code
-    cd tests
+    cd tests/integration
     python -m unittest -b $@
     # save exit code from tests
     e2e_result=$?
