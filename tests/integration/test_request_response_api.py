@@ -11,8 +11,8 @@ from psycopg2 import sql
 from psycopg2.extensions import register_adapter
 from psycopg2.extras import Json
 
-from helpers.connection import connect, Connection
-from helpers.rpc_client import Client
+from integration.helpers.connection import connect, Connection
+from integration.helpers.rpc_client import Client
 
 
 connection: Connection

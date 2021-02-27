@@ -1,8 +1,17 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=no-self-use
+# pylint: disable=unused-argument
+# pylint: disable=multiple-statements
+# pylint: disable=super-init-not-called
+
 from typing import Any, Optional
 # from .compat import PY2 as PY2, PY3 as PY3, lru_cache as lru_cache
 # from .extensions import connection as _connection, cursor as _cursor, quote_ident as quote_ident
 # from collections import OrderedDict
 # from psycopg2._ipaddress import register_ipaddress as register_ipaddress
+from psycopg2._json import Json as Json
 # from psycopg2._json import Json as Json, json as json, register_default_json as register_default_json, register_default_jsonb as register_default_jsonb, register_json as register_json
 # from psycopg2._psycopg import REPLICATION_LOGICAL as REPLICATION_LOGICAL, REPLICATION_PHYSICAL as REPLICATION_PHYSICAL, ReplicationConnection as _replicationConnection, ReplicationCursor as _replicationCursor, ReplicationMessage as ReplicationMessage
 # from psycopg2._range import DateRange as DateRange, DateTimeRange as DateTimeRange, DateTimeTZRange as DateTimeTZRange, NumericRange as NumericRange, Range as Range, RangeAdapter as RangeAdapter, RangeCaster as RangeCaster, register_range as register_range

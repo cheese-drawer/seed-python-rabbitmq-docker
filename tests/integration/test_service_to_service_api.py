@@ -4,8 +4,8 @@
 import unittest
 from unittest import TestCase
 
-from helpers.connection import connect, Connection
-from helpers.queue_client import Client
+from integration.helpers.connection import connect, Connection
+from integration.helpers.queue_client import Client
 
 
 connection: Connection
