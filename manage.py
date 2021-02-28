@@ -194,7 +194,7 @@ def sync(args: List[str]) -> None:
     # define if prompts are needed or not
     no_prompt = False
 
-    if 'no_prompt' in args:
+    if 'noprompt' in args:
         no_prompt = True
 
     # create temp database for app schema
