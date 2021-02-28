@@ -19,7 +19,7 @@ services:
       DB_PASS: pass
       DB_NAME: dev
     volumes:
-      - ./app/src:/app/src
+      - ./src:/src
 
   broker:
     image: rabbitmq:3-management-alpine

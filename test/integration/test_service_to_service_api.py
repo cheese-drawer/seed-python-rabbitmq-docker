@@ -40,7 +40,10 @@ class TestRouteQueueTest(TestCase):
     """Tests for API endpoint `queue-test`."""
 
     def test_nothing_is_returned(self) -> None:
-        """This example is a pretty useless test, instead it should probably
+        """
+        Nothing is returned.
+
+        This example is a pretty useless test, instead it should probably
         eventually be paired with a Request via the R&R API to check if the
         side effects from pushing a message on the StS API had the desired
         side effect on the service.

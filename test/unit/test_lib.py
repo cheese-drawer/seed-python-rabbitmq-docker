@@ -5,8 +5,9 @@
 import unittest
 from unittest import TestCase
 
-from helpers import async_test
 from src import lib
+
+from helpers import async_test
 
 
 class TestDoAQuickThing(TestCase):
