@@ -142,9 +142,8 @@ example_model = ExampleItem(database)
 #
 
 # NOTE: use route decorator on RPCWorker instance similar to defining a
-# route in Flask
-# but this supports async route handlers, recommended for any task
-# that you think might take a while (or just use all the time)
+# route in Flask, but using asynchronous functions as handlers instead
+# of standard synchronous functions
 
 # NOTE: This is the section that you'll change the most; it's possible that
 # you won't need to change anything else in many scenarios (I think)
@@ -245,7 +244,12 @@ async def queue_test(data: str) -> None:
 
 runner = Runner()
 
+# Add database client to Runner's objects that need run inside asyncio
+# event loop
 runner.register_database(database)
+# NOTE: you can theoretically run multiple database clients (maybe you
+# need different parts of your application to talk to different databases
+# for some reason), but you likely won't need to
 
 # Adds response_and_request to list of workers to be run when application
 # is executed
@@ -260,7 +264,7 @@ runner.register_worker(response_and_request)
 # register the queue worker as well
 runner.register_worker(service_to_service)
 
-# Run all registered workers
+# Run all registered workers & database client
 # NOTE: using run like this encapsulates all the asyncio event loop
 # management to run all of the workers passed to `register_worker()`
 # simultaneously & asynchronously without having to clutter up the code
