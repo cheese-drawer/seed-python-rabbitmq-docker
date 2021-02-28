@@ -9,16 +9,15 @@ To this end, I try to write my code in as functional (or Faux-O, to steal a phra
 Tests live in two places: unit tests in this directory built alongside the application, & integration tests outside the application designed to interface with it as any user would:
 
 ```
-project-root
-|
-|_ app/
-|   |_ src/
-|   |   |_ ... # application source lives here
-|   |_ tests/
-|       |_ ... # unit tests live here
-|_ integration-tests/
-|   |_ tests/
-|       |_ ... # integration tests live here
+.
+├── src/...             # application source lives here
+└── test
+    ├── integration
+    │   ├── helpers/... # integration test helpers
+    │   └── ...         # integration tests live here
+    └── unit
+        ├── helpers/... # unit test helpers
+        └── ...         # unit tests live here
 ```
 
 ## What to test here
