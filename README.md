@@ -209,7 +209,7 @@ See `./src/server.py` & `./src/models/*` for more details.
 ### Helper scripts
 
 This seed project comes with a few helper scripts already set up at `./scripts`.
-These can be used to perform a variety of development tasks, including starting up the development stack, [as seen above](#running-the-service).
+These can be used to perform a variety of development tasks, including starting up the development stack, [as seen above](#development-usage).
 
 Available scripts:
 
