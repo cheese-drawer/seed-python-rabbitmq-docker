@@ -4,6 +4,7 @@
 
 # python environment
 .env/
+.envrc
 
 # python caches
 __pycache__/
@@ -11,3 +12,13 @@ __pycache__/
 
 # secret files
 .secrets
+TODO
+
+# testing coverage reports
+.coverage
+
+# dev helper scripts
+app/scripts
+integration_tests/scripts
+.vscode/
+migrations/
