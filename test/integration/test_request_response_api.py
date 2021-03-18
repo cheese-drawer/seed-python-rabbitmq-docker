@@ -194,23 +194,11 @@ class TestRouteExampleItems(TestCase):
     def test_response_should_be_include_all_records_with_matching_string_value(
         self
     ) -> None:
-        def trim_msg_id(msg_id: str) -> str:
-            """
-            Trim string representation of UUID from response to hex only.
-
-            Response has UUID as `UUID('bbcc5cc5-f893-411b-a5d8-aa765bfd0212')`
-            when they're needed as `'bbcc5cc5-f893-411b-a5d8-aa765bfd0212'`
-            for equality comparison.
-            """
-
-            split = msg_id.split("'")
-            return split[1]
-
         def id_to_str(item: Any) -> str:
             return str(item['_id'])
 
         response = client.call('example-items', 'match me')
-        ids = [trim_msg_id(item['_id']) for item in response['data']]
+        ids = [item['_id'] for item in response['data']]
 
         with self.subTest():
             self.assertIn(id_to_str(self.example_items[0]), ids)
