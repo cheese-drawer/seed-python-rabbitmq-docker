@@ -36,6 +36,10 @@ import amqp_worker as worker
 import db_wrapper as db
 
 # internal dependencies
+from encoder import (
+    json_gzip_rpc_factory,
+    json_gzip_queue_factory,
+)
 from start_server import Runner
 
 # application logic
@@ -109,8 +113,12 @@ broker_connection_params = worker.ConnectionParameters(
     password=os.getenv('BROKER_PASS', 'guest'))
 
 # initialize Worker & assign to global variable
-response_and_request = worker.RPCWorker(broker_connection_params)
-service_to_service = worker.QueueWorker(broker_connection_params)
+response_and_request = worker.RPCWorker(
+    broker_connection_params,
+    pattern_factory=json_gzip_rpc_factory)
+service_to_service = worker.QueueWorker(
+    broker_connection_params,
+    pattern_factory=json_gzip_queue_factory)
 
 
 #
