@@ -4,10 +4,8 @@
 # this script should always be located next to
 # docker-compose.yml & the test_runner package
 # directory (containing python env & tests)
-current_dir=`dirname "$0"`
-cd $current_dir
-# Only use the following line if needing to enable
-# a python environment
-# eval "$(direnv export bash)"
+script_dir=`dirname "$0"`
+cd $script_dir
+cd ..
 
-docker-compose --file ../dev.docker-compose.yml build
+docker-compose build
